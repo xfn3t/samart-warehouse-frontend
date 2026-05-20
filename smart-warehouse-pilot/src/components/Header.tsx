@@ -23,16 +23,16 @@ const Header = ({ warehouseCode }: HeaderProps) => {
     <header className="bg-white border-b px-6 py-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h1 
+          <h1
             className="text-xl font-semibold cursor-pointer hover:text-primary transition-colors"
             onClick={handleLogoClick}
           >
-            Smart Warehouse
+            Умный склад
           </h1>
           {warehouseCode && (
             <div className="flex items-center gap-2">
               <Warehouse className="h-4 w-4" />
-              <span className="text-sm">Warehouse: {warehouseCode}</span>
+              <span className="text-sm">Склад: {warehouseCode}</span>
             </div>
           )}
         </div>
@@ -40,7 +40,7 @@ const Header = ({ warehouseCode }: HeaderProps) => {
         <div className="flex items-center space-x-4">
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            Выйти
           </Button>
         </div>
       </div>

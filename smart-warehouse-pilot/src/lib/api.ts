@@ -1,5 +1,4 @@
-﻿// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\lib/api.ts
-import { toast } from "sonner";
+﻿import { toast } from "sonner";
 
 class ApiClient {
   private baseURL: string;
@@ -10,7 +9,7 @@ class ApiClient {
 
   private async request(endpoint: string, options: RequestInit = {}) {
     const token = localStorage.getItem("token");
-    
+
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...options.headers,
@@ -27,7 +26,7 @@ class ApiClient {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem("token");
@@ -35,17 +34,17 @@ class ApiClient {
           window.location.href = "/login";
           throw new Error("Authentication required");
         }
-        
+
         const errorText = await response.text();
         let errorMessage = `HTTP error! status: ${response.status}`;
-        
+
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
         } catch {
           errorMessage = errorText || errorMessage;
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -54,7 +53,7 @@ class ApiClient {
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
       }
-      
+
       return await response.text();
     } catch (error) {
       console.error("API request failed:", error);
@@ -68,7 +67,7 @@ class ApiClient {
 
   async post(endpoint: string, data?: any, options: RequestInit = {}) {
     const isFormData = data instanceof FormData;
-    
+
     const requestOptions: RequestInit = {
       method: "POST",
       ...options,
@@ -78,8 +77,8 @@ class ApiClient {
       requestOptions.body = JSON.stringify(data);
     } else if (data && isFormData) {
       // Remove Content-Type for FormData to let browser set it with boundary
-      if (requestOptions.headers && 'Content-Type' in requestOptions.headers) {
-        delete (requestOptions.headers as any)['Content-Type'];
+      if (requestOptions.headers && "Content-Type" in requestOptions.headers) {
+        delete (requestOptions.headers as any)["Content-Type"];
       }
       requestOptions.body = data;
     }

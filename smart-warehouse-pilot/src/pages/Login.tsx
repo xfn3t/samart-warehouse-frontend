@@ -30,10 +30,10 @@ const Login = () => {
 
       const data = await response.json();
       localStorage.setItem('token', data.accessToken);
-      toast.success("Login successful");
+      toast.success("Вход выполнен успешно");
       navigate("/warehouses");
     } catch (error) {
-      toast.error("Login failed");
+      toast.error("Ошибка входа");
     } finally {
       setLoading(false);
     }
@@ -44,14 +44,14 @@ const Login = () => {
       <div className="w-full max-w-md p-8">
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Smart Warehouse</h1>
-            <p className="text-gray-600">Warehouse management system</p>
+            <h1 className="text-2xl font-bold">Умный Склад</h1>
+            <p className="text-gray-600">Система управления складом</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="email"
-              placeholder="Email"
+              placeholder="Электронная почта"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -60,7 +60,7 @@ const Login = () => {
 
             <Input
               type="password"
-              placeholder="Password"
+              placeholder="Пароль"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -71,19 +71,19 @@ const Login = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Выполняется вход...
                 </>
               ) : (
-                "Sign In"
+                "Войти"
               )}
             </Button>
           </form>
 
           <div className="text-center">
             <p className="text-gray-600">
-              Don't have an account?{" "}
+              Нет учетной записи?{" "}
               <Link to="/register" className="text-blue-500 hover:text-blue-700 underline">
-                Create account
+                Создать учетную запись
               </Link>
             </p>
           </div>

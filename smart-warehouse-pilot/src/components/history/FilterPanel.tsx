@@ -33,12 +33,12 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
   const [loadingRobots, setLoadingRobots] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const categoryOptions = [
-    "network",
-    "electronics",
-    "cables",
-    "accessories",
-    "components"
+  const categoryOptions: { key: string; label: string }[] = [
+    { key: "network", label: "сеть" },
+    { key: "electronics", label: "электроника" },
+    { key: "cables", label: "кабели" },
+    { key: "accessories", label: "аксессуары" },
+    { key: "components", label: "компоненты" }
   ];
 
   useEffect(() => {
@@ -93,10 +93,10 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
   };
 
   const statusOptions = [
-    { value: "all", label: "All statuses" },
+    { value: "all", label: "Все статусы" },
     { value: "OK", label: "OK" },
-    { value: "LOW_STOCK", label: "Low Stock" },
-    { value: "CRITICAL", label: "Critical" },
+    { value: "LOW_STOCK", label: "Низкий запас" },
+    { value: "CRITICAL", label: "Критический" },
   ];
 
   const hasActiveFilters = searchQuery || status !== "all" || robotCode !== "all" || categories.length > 0;
@@ -108,7 +108,7 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             ref={searchInputRef}
-            placeholder="Search by product code, product name, or robot code..."
+            placeholder="Поиск по коду товара, названию или коду робота..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -116,17 +116,17 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
           />
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
             <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-              Enter to search
+              Enter для поиска
             </span>
           </div>
         </div>
 
         <div className="flex gap-4 flex-wrap pt-4">
           <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium mb-2 block">Status</label>
+            <label className="text-sm font-medium mb-2 block">Статус</label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Выберите статус" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map(option => (
@@ -139,13 +139,13 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium mb-2 block">Robot</label>
+            <label className="text-sm font-medium mb-2 block">Робот</label>
             <Select value={robotCode} onValueChange={setRobotCode} disabled={loadingRobots}>
               <SelectTrigger>
-                <SelectValue placeholder={loadingRobots ? "Loading robots..." : "Select robot"} />
+                <SelectValue placeholder={loadingRobots ? "Загрузка роботов..." : "Выберите робота"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All robots</SelectItem>
+                <SelectItem value="all">Все роботы</SelectItem>
                 {robots.map(robot => (
                   <SelectItem key={robot.id} value={robot.code}>{robot.code}</SelectItem>
                 ))}
@@ -154,21 +154,21 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
           </div>
 
           <div className="flex-1 min-w-[300px]">
-            <label className="text-sm font-medium mb-2 block">Categories</label>
+            <label className="text-sm font-medium mb-2 block">Категории</label>
             <div className="flex flex-wrap gap-2">
-              {categoryOptions.map(category => (
+              {categoryOptions.map(cat => (
                 <Badge
-                  key={category}
-                  variant={categories.includes(category) ? "default" : "outline"}
+                  key={cat.key}
+                  variant={categories.includes(cat.key) ? "default" : "outline"}
                   className={cn(
                     "cursor-pointer transition-colors",
-                    categories.includes(category) 
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                    categories.includes(cat.key)
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "hover:bg-muted"
                   )}
-                  onClick={() => handleCategoryChange(category)}
+                  onClick={() => handleCategoryChange(cat.key)}
                 >
-                  {category}
+                  {cat.label}
                 </Badge>
               ))}
             </div>
@@ -176,11 +176,11 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
 
           <div className="flex items-end gap-2">
             <Button onClick={handleApplyFilters} size="lg">
-              Apply filters
+              Применить фильтры
             </Button>
             {hasActiveFilters && (
               <Button onClick={handleClearFilters} variant="outline" size="lg">
-                Clear
+                Очистить
               </Button>
             )}
           </div>

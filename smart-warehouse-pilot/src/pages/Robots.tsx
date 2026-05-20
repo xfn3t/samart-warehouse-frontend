@@ -109,19 +109,19 @@ const Robots = () => {
 
   const handleRefresh = () => {
     fetchAllRobots();
-    toast.info("Refreshing robot data...");
+    toast.info("Обновление данных роботов...");
   };
 
   const handleRobotCreated = () => {
     fetchAllRobots();
-    toast.success("Robot created successfully!");
+    toast.success("Робот успешно создан!");
   };
 
   const handleRobotUpdated = () => {
     fetchAllRobots();
     setEditModalOpen(false);
     setSelectedRobot(null);
-    toast.success("Robot updated successfully!");
+    toast.success("Робот успешно обновлён!");
   };
 
   const handleEditRobot = (robot: RobotDTO) => {
@@ -148,7 +148,7 @@ const Robots = () => {
       });
 
       if (response.ok) {
-        toast.success("Robot deleted successfully!");
+        toast.success("Робот успешно удалён!");
         fetchAllRobots(); // Обновляем данные после удаления
         setDeleteDialogOpen(false);
         setSelectedRobot(null);
@@ -157,7 +157,7 @@ const Robots = () => {
       }
     } catch (error) {
       console.error('Failed to delete robot:', error);
-      toast.error("Failed to delete robot");
+      toast.error("Не удалось удалить робота");
     } finally {
       setDeleting(false);
     }
@@ -207,7 +207,7 @@ const Robots = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading robots...</p>
+          <p>Загрузка роботов...</p>
         </div>
       </div>
     );
@@ -217,10 +217,10 @@ const Robots = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Robots Management</h1>
+          <h1 className="text-xl font-semibold">Управление роботами</h1>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            Выйти
           </Button>
         </div>
       </header>
@@ -235,7 +235,7 @@ const Robots = () => {
               onClick={() => navigate('/warehouses')}
             >
               <Warehouse className="mr-2 h-4 w-4" />
-              Warehouses
+              Склады
             </Button>
             <Button
               variant="secondary"
@@ -243,7 +243,7 @@ const Robots = () => {
               onClick={() => navigate('/robots')}
             >
               <Bot className="mr-2 h-4 w-4" />
-              Robots
+              Роботы
             </Button>
           </div>
         </div>
@@ -252,19 +252,19 @@ const Robots = () => {
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-2xl font-bold">All Robots</h2>
+              <h2 className="text-2xl font-bold">Все роботы</h2>
               <p className="text-gray-600">
-                Managing robots across {warehouses.length} warehouses
+                Управление роботами на {warehouses.length} складах
               </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
                 <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh
+                Обновить
               </Button>
               <Button onClick={() => setCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Register Robot
+                Зарегистрировать робота
               </Button>
             </div>
           </div>
@@ -275,31 +275,31 @@ const Robots = () => {
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-gray-800">{robotStats.total}</div>
-                  <div className="text-sm text-gray-600">Total Robots</div>
+                  <div className="text-sm text-gray-600">Всего роботов</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">{robotStats.working}</div>
-                  <div className="text-sm text-gray-600">Working</div>
+                  <div className="text-sm text-gray-600">Работает</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">{robotStats.idle}</div>
-                  <div className="text-sm text-gray-600">Idle</div>
+                  <div className="text-sm text-gray-600">Ожидание</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-yellow-600">{robotStats.charging}</div>
-                  <div className="text-sm text-gray-600">Charging</div>
+                  <div className="text-sm text-gray-600">Зарядка</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-red-600">{robotStats.maintenance}</div>
-                  <div className="text-sm text-gray-600">Maintenance</div>
+                  <div className="text-sm text-gray-600">Обслуживание</div>
                 </CardContent>
               </Card>
             </div>
@@ -314,10 +314,10 @@ const Robots = () => {
               <CardContent className="flex flex-col items-center justify-center h-40 p-6">
                 <Plus className="h-12 w-12 text-gray-400 mb-2" />
                 <p className="text-lg font-medium text-gray-600 text-center">
-                  Register New Robot
+                  Зарегистрировать нового робота
                 </p>
                 <p className="text-sm text-gray-500 text-center mt-2">
-                  Add a new robot to any warehouse
+                  Добавить нового робота на любой склад
                 </p>
               </CardContent>
             </Card>
@@ -354,19 +354,19 @@ const Robots = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className="text-sm text-gray-600">Статус:</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(robot.status)}`}>
                       {robot.status}
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Battery:</span>
+                    <span className="text-sm text-gray-600">Батарея:</span>
                     <div className="flex items-center gap-2">
                       <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full ${
-                            robot.batteryLevel > 70 ? 'bg-green-500' : 
+                            robot.batteryLevel > 70 ? 'bg-green-500' :
                             robot.batteryLevel > 30 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
                           style={{ width: `${robot.batteryLevel}%` }}
@@ -377,29 +377,29 @@ const Robots = () => {
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Warehouse:</span>
+                    <span className="text-sm text-gray-600">Склад:</span>
                     <span className="text-sm font-medium">{robot.warehouseCode}</span>
                   </div>
 
                   {(robot.currentZone !== null || robot.currentRow !== null || robot.currentShelf !== null) && (
                     <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 mt-3">
                       <div className="text-center">
-                        <div className="font-semibold">Zone</div>
+                        <div className="font-semibold">Зона</div>
                         <div>{robot.currentZone ?? "-"}</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-semibold">Row</div>
+                        <div className="font-semibold">Ряд</div>
                         <div>{robot.currentRow ?? "-"}</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-semibold">Shelf</div>
+                        <div className="font-semibold">Полка</div>
                         <div>{robot.currentShelf ?? "-"}</div>
                       </div>
                     </div>
                   )}
 
                   <div className="text-xs text-gray-500 mt-2">
-                    Last update: {new Date(robot.lastUpdate).toLocaleString()}
+                    Последнее обновление: {new Date(robot.lastUpdate).toLocaleString()}
                   </div>
                 </CardContent>
               </Card>
@@ -410,14 +410,14 @@ const Robots = () => {
             <div className="text-center py-12">
               <Bot className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                No robots found
+                Роботы не найдены
               </h3>
               <p className="text-gray-500 mb-6">
-                Get started by registering your first robot
+                Начните работу, зарегистрировав первого робота
               </p>
               <Button onClick={() => setCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Register First Robot
+                Зарегистрировать первого робота
               </Button>
             </div>
           )}
@@ -426,14 +426,14 @@ const Robots = () => {
             <div className="text-center py-12">
               <Warehouse className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                No warehouses found
+                Склады не найдены
               </h3>
               <p className="text-gray-500 mb-6">
-                You need to create a warehouse first before registering robots
+                Сначала необходимо создать склад перед регистрацией роботов
               </p>
               <Button onClick={() => navigate('/warehouses')}>
                 <Warehouse className="mr-2 h-4 w-4" />
-                Create Warehouse
+                Создать склад
               </Button>
             </div>
           )}
@@ -463,10 +463,10 @@ const Robots = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
-        title="Delete Robot"
-        description={`Are you sure you want to delete robot "${selectedRobot?.code}"? This action cannot be undone and all data associated with this robot will be permanently removed.`}
-        confirmText="Delete Robot"
-        cancelText="Cancel"
+        title="Удалить робота"
+        description={`Вы уверены, что хотите удалить робота "${selectedRobot?.code}"? Это действие нельзя отменить, и все данные, связанные с этим роботом, будут безвозвратно удалены.`}
+        confirmText="Удалить робота"
+        cancelText="Отмена"
         variant="destructive"
         loading={deleting}
       />

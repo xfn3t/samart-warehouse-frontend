@@ -32,7 +32,7 @@ const Navigation = ({ warehouseCode, onUploadClick }: NavigationProps) => {
               )}
             >
               <Activity className="h-4 w-4" />
-              <span>Current Monitoring</span>
+              <span>Текущий мониторинг</span>
             </Button>
           </Link>
           <Link to={getHistoryPath()}>
@@ -44,7 +44,7 @@ const Navigation = ({ warehouseCode, onUploadClick }: NavigationProps) => {
               )}
             >
               <History className="h-4 w-4" />
-              <span>Historical Data</span>
+              <span>История данных</span>
             </Button>
           </Link>
         </div>
@@ -52,7 +52,7 @@ const Navigation = ({ warehouseCode, onUploadClick }: NavigationProps) => {
         {onUploadClick && (
           <Button onClick={onUploadClick} variant="outline" className="space-x-2">
             <Upload className="h-4 w-4" />
-            <span>Upload CSV</span>
+            <span>Загрузить CSV</span>
           </Button>
         )}
       </div>

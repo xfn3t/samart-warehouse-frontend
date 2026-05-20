@@ -52,10 +52,10 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
         newScans.push({
           id: scanId,
           robot_id: String(robotData.robot_id || ""),
-          productCode: String(scan.productCode || "N/A"),
-          productName: String(scan.productName || "Unknown Product"),
+          productCode: String(scan.productCode || "Н/Д"),
+                    productName: String(scan.productName || "Неизвестный товар"),
           quantity: Number(scan.quantity || 0),
-          status: (scan.status && typeof scan.status === 'string') ? 
+          status: (scan.status && typeof scan.status === 'string') ?
             (scan.status as "OK" | "LOW_STOCK" | "CRITICAL") : "OK",
           diff: Number(scan.diff || 0),
           scannedAt: String(scan.scannedAt || new Date().toISOString()),
@@ -90,12 +90,12 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
         // Показываем уведомления
         if (data.recent_scans.length === 1) {
           const scan = data.recent_scans[0];
-          toast.info(`New scan: ${scan.productName || 'Unknown product'}`, {
-            description: `Robot ${data.robot_id} scanned ${scan.quantity || 0} items`
+          toast.info(`Новое сканирование: ${scan.productName || 'Неизвестный товар'}`, {
+            description: `Робот ${data.robot_id} отсканировал ${scan.quantity || 0} поз.`
           });
         } else {
-          toast.info(`New scans from Robot ${data.robot_id}`, {
-            description: `${data.recent_scans.length} items scanned`
+          toast.info(`Новые сканирования от робота ${data.robot_id}`, {
+            description: `Отсканировано позиций: ${data.recent_scans.length}`
           });
         }
       }
@@ -118,14 +118,14 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
   const getStatusBadge = (status: Scan["status"]) => {
     // Убедимся, что status - это строка
     const statusText = typeof status === 'string' ? status : 'OK';
-    
+
     switch (statusText) {
       case "OK":
         return <Badge className="bg-green-500 text-white">OK</Badge>;
       case "LOW_STOCK":
-        return <Badge className="bg-yellow-500 text-white">Low Stock</Badge>;
+        return <Badge className="bg-yellow-500 text-white">Низкий запас</Badge>;
       case "CRITICAL":
-        return <Badge className="bg-red-500 text-white">Critical</Badge>;
+        return <Badge className="bg-red-500 text-white">Критический</Badge>;
       default:
         return <Badge className="bg-gray-500 text-white">{statusText}</Badge>;
     }
@@ -133,7 +133,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
 
   const getStatusColor = (status: Scan["status"]) => {
     const statusText = typeof status === 'string' ? status : 'OK';
-    
+
     switch (statusText) {
       case "OK":
         return "text-green-600";
@@ -148,7 +148,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
 
   const getStatusBgColor = (status: Scan["status"]) => {
     const statusText = typeof status === 'string' ? status : 'OK';
-    
+
     switch (statusText) {
       case "OK":
         return "bg-green-50 border-green-200";
@@ -168,18 +168,18 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
 
-      if (diffMins < 1) return "Just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffMins < 1) return "Только что";
+      if (diffMins < 60) return `${diffMins} мин. назад`;
 
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffHours < 24) return `${diffHours} ч. назад`;
 
       return date.toLocaleDateString("ru-RU", {
         day: '2-digit',
         month: '2-digit'
       });
     } catch {
-      return "Invalid time";
+      return "Некорректное время";
     }
   };
 
@@ -192,21 +192,21 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
         second: '2-digit'
       });
     } catch {
-      return "Invalid time";
+      return "Некорректное время";
     }
   };
 
   const handleScanClick = (scan: Scan) => {
-    toast.info(`Scan Details: ${scan.productName}`, {
+    toast.info(`Детали сканирования: ${scan.productName}`, {
       description: (
         <div className="text-sm space-y-1">
-          <div><strong>Robot:</strong> {scan.robot_id}</div>
-          <div><strong>Product:</strong> {scan.productCode}</div>
-          <div><strong>Quantity:</strong> {scan.quantity} items</div>
-          <div><strong>Status:</strong> {scan.status}</div>
-          <div><strong>Difference:</strong> {scan.diff > 0 ? '+' : ''}{scan.diff}</div>
-          {scan.zone && <div><strong>Location:</strong> Zone {scan.zone}, Row {scan.row}, Shelf {scan.shelf}</div>}
-          <div><strong>Time:</strong> {new Date(scan.scannedAt).toLocaleString("ru-RU")}</div>
+          <div><strong>Робот:</strong> {scan.robot_id}</div>
+          <div><strong>Товар:</strong> {scan.productCode}</div>
+          <div><strong>Количество:</strong> {scan.quantity} поз.</div>
+          <div><strong>Статус:</strong> {scan.status}</div>
+          <div><strong>Разница:</strong> {scan.diff > 0 ? '+' : ''}{scan.diff}</div>
+          {scan.zone && <div><strong>Местоположение:</strong> Зона {scan.zone}, Ряд {scan.row}, Полка {scan.shelf}</div>}
+          <div><strong>Время:</strong> {new Date(scan.scannedAt).toLocaleString("ru-RU")}</div>
         </div>
       ),
       duration: 5000
@@ -218,10 +218,10 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
       <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">Recent Scans - {warehouseCode}</CardTitle>
+            <CardTitle className="text-sm font-medium">Последние сканирования - {warehouseCode}</CardTitle>
             <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <WifiOff className="h-3 w-3" />
-              Connecting...
+              Подключение...
             </Badge>
           </div>
         </CardHeader>
@@ -250,13 +250,13 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium">Recent Scans - {warehouseCode}</CardTitle>
+            <CardTitle className="text-sm font-medium">Последние сканирования - {warehouseCode}</CardTitle>
             <Badge
               variant={isConnected ? "default" : "secondary"}
               className="flex items-center gap-1 text-xs"
             >
               {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              {isConnected ? "Live" : "Offline"}
+              {isConnected ? "Онлайн" : "Офлайн"}
             </Badge>
           </div>
           <Button
@@ -269,9 +269,9 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
           </Button>
         </div>
         <div className="text-xs text-muted-foreground flex justify-between">
-          <span>{scans.length} scans</span>
+          <span>{scans.length} сканирований</span>
           {scans.length > 0 && (
-            <span>Last: {formatTime(scans[0].scannedAt)}</span>
+            <span>Последнее: {formatTime(scans[0].scannedAt)}</span>
           )}
         </div>
       </CardHeader>
@@ -280,11 +280,11 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
           {scans.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <div className="mb-2">No scans available yet</div>
-              <div className="text-xs">Scan data will appear here when robots start working</div>
+              <div className="mb-2">Сканирования пока отсутствуют</div>
+              <div className="text-xs">Данные сканирования появятся здесь, когда роботы начнут работу</div>
               {!isConnected && (
                 <div className="text-xs text-yellow-600 mt-2">
-                  Waiting for WebSocket connection...
+                  Ожидание подключения WebSocket...
                 </div>
               )}
             </div>
@@ -299,7 +299,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
                       <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
-                        Robot {scan.robot_id}
+                        Робот {scan.robot_id}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {formatTime(scan.scannedAt)}
@@ -308,7 +308,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
                     {scan.zone && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        Zone {scan.zone}, Row {scan.row}, Shelf {scan.shelf}
+                        Зона {scan.zone}, Ряд {scan.row}, Полка {scan.shelf}
                       </div>
                     )}
                   </div>
@@ -327,13 +327,13 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
 
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <div className="text-muted-foreground">Quantity</div>
+                      <div className="text-muted-foreground">Количество</div>
                       <div className={`font-bold ${getStatusColor(scan.status)}`}>
                         {scan.quantity}
                       </div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground">Difference</div>
+                      <div className="text-muted-foreground">Разница</div>
                       <div className={`font-bold ${
                         scan.diff > 0 ? 'text-green-600' :
                         scan.diff < 0 ? 'text-red-600' :
@@ -343,7 +343,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
                       </div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground">Time</div>
+                      <div className="text-muted-foreground">Время</div>
                       <div className="font-medium text-foreground">
                         {formatDetailedTime(scan.scannedAt)}
                       </div>

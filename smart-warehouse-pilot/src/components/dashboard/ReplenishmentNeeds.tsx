@@ -37,7 +37,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
     try {
       const data = await apiClient.get(`/${warehouseCode}/inventory/history/low-stock`);
       setProducts(data);
-      
+
       // Calculate total products needing replenishment
       const total = data.filter((product: Product) => product.quantity < product.minStock).length;
       setTotalNeeded(total);
@@ -113,7 +113,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Replenishment Needs - {warehouseCode}
+            Потребности в пополнении - {warehouseCode}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-32">
@@ -130,7 +130,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Replenishment Needs - {warehouseCode}
+            Потребности в пополнении - {warehouseCode}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center h-32 text-destructive">
@@ -152,7 +152,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Replenishment Needs - {warehouseCode}
+            Потребности в пополнении - {warehouseCode}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -212,7 +212,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
                       <span>{Math.round((product.quantity / product.minStock) * 100)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full ${getUrgencyBgColor(urgency)}`}
                         style={{ width: `${Math.min((product.quantity / product.minStock) * 100, 100)}%` }}
                       />
@@ -233,8 +233,8 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
 
           {remainingCount > 0 && (
             <div className="text-center pt-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowAllProducts(true)}
                 className="text-foreground hover:bg-primary hover:text-primary-foreground border-border"
@@ -254,7 +254,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
               Все товары, требующие пополнения - {warehouseCode}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {productsNeedingReplenishment.map((product) => {
               const urgency = getUrgencyLevel(product);
@@ -303,7 +303,7 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
                       <span>{product.quantity} / {product.minStock}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
+                      <div
                         className={`h-3 rounded-full ${urgencyBgColor}`}
                         style={{ width: `${Math.min((product.quantity / product.minStock) * 100, 100)}%` }}
                       />

@@ -72,13 +72,13 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
     onLocationUpdate: (data: any) => {
       if (data.locations) {
         setLocations(data.locations);
-        toast.info('Locations updated in real-time');
+        toast.info('Местоположения обновлены в реальном времени');
       }
     },
     onWarehouseRobotsUpdate: (data: any) => {
       if (data.robots) {
         setRobots(data.robots);
-        toast.info('Robots position updated');
+        toast.info('Позиции роботов обновлены');
       }
     },
     onRobotUpdate: (data: any) => {
@@ -86,7 +86,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       setRobots(prev => {
         const updated = [...prev];
         const existingIndex = updated.findIndex(r => r.robot_id === data.robot_id);
-        
+
         if (existingIndex >= 0) {
           updated[existingIndex] = {
             ...updated[existingIndex],
@@ -108,7 +108,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
             last_update: data.timestamp
           });
         }
-        
+
         return updated;
       });
     }
@@ -121,7 +121,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
   const fetchWarehouseData = async () => {
     try {
       setLoading(true);
-      
+
       // Get warehouse data
       const warehouses = await apiClient.get('/warehouse');
       const currentWarehouse = warehouses.find((w: Warehouse) => w.code === warehouseCode);
@@ -132,7 +132,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       }
     } catch (error) {
       console.error('Failed to fetch warehouse data:', error);
-      toast.error("Failed to load warehouse map data");
+      toast.error("Не удалось загрузить данные карты склада");
     } finally {
       setLoading(false);
     }
@@ -153,26 +153,26 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       setRobots(robotsData.robots || []);
     } catch (error) {
       console.error('Failed to fetch real data:', error);
-      toast.error("Failed to load warehouse locations and robots data");
+      toast.error("Не удалось загрузить данные о местоположениях и роботах");
     }
   };
 
   const handleRefresh = async () => {
     try {
       await fetchWarehouseData();
-      toast.success("Map data refreshed");
+      toast.success("Данные карты обновлены");
     } catch (error) {
-      toast.error("Failed to refresh data");
+      toast.error("Не удалось обновить данные");
     }
   };
 
   const getCellColor = (location: Location | undefined) => {
     if (!location) return "bg-gray-100 border-gray-300";
-    
+
     const lastScanTime = new Date(location.last_scan).getTime();
     const now = Date.now();
     const hoursSinceLastScan = (now - lastScanTime) / (1000 * 60 * 60);
-    
+
     if (hoursSinceLastScan < 1) return "bg-green-100 border-green-400";
     if (hoursSinceLastScan < 4) return "bg-yellow-100 border-yellow-400";
     if (hoursSinceLastScan < 12) return "bg-orange-100 border-orange-400";
@@ -197,29 +197,36 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
   const getRobotStatusText = (status: string) => {
     switch (status) {
       case "WORKING":
-        return "Working";
+        return "Работает";
       case "CHARGING":
-        return "Charging";
+        return "Заряжается";
       case "IDLE":
-        return "Idle";
+        return "Ожидание";
       case "MAINTENANCE":
-        return "Maintenance";
+        return "Обслуживание";
       default:
         return status;
     }
+  };
+
+  const russianPlural = (n: number, one: string, few: string, many: string) => {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${n} ${one}`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} ${few}`;
+    return `${n} ${many}`;
   };
 
   const formatLastScan = (lastScan: string) => {
     const date = new Date(lastScan);
     const now = new Date();
     const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffHours < 1) return "Less than 1 hour ago";
-    if (diffHours === 1) return "1 hour ago";
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    
+
+    if (diffHours < 1) return "Менее 1 часа назад";
+    if (diffHours < 24) return `${russianPlural(diffHours, 'час', 'часа', 'часов')} назад`;
+
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return `${russianPlural(diffDays, 'день', 'дня', 'дней')} назад`;
   };
 
   const getLocationAt = (zone: number, row: number) => {
@@ -238,7 +245,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
         <CardContent className="p-6">
           <div className="flex justify-center items-center h-64">
             <RefreshCw className="h-8 w-8 animate-spin mr-2" />
-            <p>Loading warehouse map...</p>
+            <p>Загрузка карты склада...</p>
           </div>
         </CardContent>
       </Card>
@@ -250,7 +257,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       <Card className="h-full">
         <CardContent className="p-6">
           <div className="flex justify-center items-center h-64">
-            <p>Warehouse data not found for {warehouseCode}</p>
+            <p>Данные склада не найдены для {warehouseCode}</p>
           </div>
         </CardContent>
       </Card>
@@ -262,10 +269,10 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <CardTitle>Warehouse Map - {warehouseCode}</CardTitle>
+            <CardTitle>Карта склада - {warehouseCode}</CardTitle>
             <Badge variant={isConnected ? "default" : "secondary"} className="flex items-center gap-1">
               {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              {isConnected ? "Live" : "Offline"}
+              {isConnected ? "Онлайн" : "Офлайн"}
             </Badge>
           </div>
           <div className="flex gap-2">
@@ -335,11 +342,11 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                               </div>
                             )}
                           </div>
-                          
+
                           {robot && (
                             <div
                               className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getRobotColor(robot.status)} border-2 border-white`}
-                              title={`Robot ${robot.robot_id} (${getRobotStatusText(robot.status)})`}
+                              title={`Робот ${robot.robot_id} (${getRobotStatusText(robot.status)})`}
                             />
                           )}
                         </div>
@@ -347,32 +354,32 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                       <TooltipContent side="top" className="w-80">
                         {location ? (
                           <div className="space-y-2">
-                            <div className="font-semibold">Location {zone}-{row}</div>
+                            <div className="font-semibold">Местоположение {zone}-{row}</div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div>
-                                <span className="text-muted-foreground">Last scanned:</span>
+                                <span className="text-muted-foreground">Последнее сканирование:</span>
                                 <div className="font-medium">{formatLastScan(location.last_scan)}</div>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Total items:</span>
+                                <span className="text-muted-foreground">Всего товаров:</span>
                                 <div className="font-medium">{location.total_products}</div>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Capacity:</span>
+                                <span className="text-muted-foreground">Заполненность:</span>
                                 <div className="font-medium">{location.capacity_percent}%</div>
                               </div>
                               {location.metrics && (
                                 <>
                                   <div>
-                                    <span className="text-muted-foreground">Scanned today:</span>
+                                    <span className="text-muted-foreground">Отсканировано сегодня:</span>
                                     <div className="font-medium">{location.metrics.scanned_today}</div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Low stock:</span>
+                                    <span className="text-muted-foreground">Низкий запас:</span>
                                     <div className="font-medium text-yellow-600">{location.metrics.low_stock_items}</div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Out of stock:</span>
+                                    <span className="text-muted-foreground">Нет в наличии:</span>
                                     <div className="font-medium text-red-600">{location.metrics.out_of_stock_items}</div>
                                   </div>
                                 </>
@@ -382,15 +389,15 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                               <div className="pt-2 border-t">
                                 <div className="font-semibold flex items-center gap-2">
                                   <Info className="h-3 w-3" />
-                                  Robot {robot.robot_id}
+                                  Робот {robot.robot_id}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                   <div>
-                                    <span className="text-muted-foreground">Status:</span>
+                                    <span className="text-muted-foreground">Статус:</span>
                                     <div className="font-medium">{getRobotStatusText(robot.status)}</div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Battery:</span>
+                                    <span className="text-muted-foreground">Батарея:</span>
                                     <div className="font-medium">{robot.battery_level}%</div>
                                   </div>
                                 </div>
@@ -399,8 +406,8 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                           </div>
                         ) : (
                           <div>
-                            <div className="font-semibold">Location {zone}-{row}</div>
-                            <div className="text-sm text-muted-foreground">No scan data available</div>
+                            <div className="font-semibold">Местоположение {zone}-{row}</div>
+                            <div className="text-sm text-muted-foreground">Нет данных сканирования</div>
                           </div>
                         )}
                       </TooltipContent>
@@ -412,47 +419,47 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
 
             {/* Legend */}
             <div className="mt-6 p-4 bg-card border rounded-lg">
-              <p className="font-semibold mb-3 text-sm">Legend:</p>
+              <p className="font-semibold mb-3 text-sm">Легенда:</p>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-100 border-2 border-green-400 rounded"></div>
-                  <span>Scanned &lt; 1 hour ago</span>
+                  <span>Отсканировано &lt; 1 часа назад</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-400 rounded"></div>
-                  <span>Scanned 1-4 hours ago</span>
+                  <span>Отсканировано 1-4 часа назад</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-orange-100 border-2 border-orange-400 rounded"></div>
-                  <span>Scanned 4-12 hours ago</span>
+                  <span>Отсканировано 4-12 часов назад</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-red-100 border-2 border-red-400 rounded"></div>
-                  <span>Scanned &gt; 12 hours ago</span>
+                  <span>Отсканировано &gt; 12 часов назад</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
-                  <span>No data</span>
+                  <span>Нет данных</span>
                 </div>
               </div>
-              
-              <p className="font-semibold mt-4 mb-3 text-sm">Robot Status:</p>
+
+              <p className="font-semibold mt-4 mb-3 text-sm">Статус робота:</p>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span>Working</span>
+                  <span>Работает</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>Charging</span>
+                  <span>Заряжается</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span>Idle</span>
+                  <span>Ожидание</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span>Maintenance</span>
+                  <span>Обслуживание</span>
                 </div>
               </div>
             </div>

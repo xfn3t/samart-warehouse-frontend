@@ -51,12 +51,12 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
     try {
       const params = new URLSearchParams();
       selectedProducts.forEach(code => params.append('productCodes', code));
-      
+
       const data = await apiClient.get(`/${warehouseCode}/inventory/history/bySkus?${params.toString()}`);
       setHistoryData(data);
     } catch (error) {
       console.error('Failed to fetch product history:', error);
-      setError('Failed to load product history data');
+      setError('Не удалось загрузить данные истории товаров');
       toast.error("Не удалось загрузить данные для графика");
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
 
   // Generate colors for each product
   const colors = [
-    '#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', 
+    '#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6',
     '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#14b8a6'
   ];
 
@@ -194,17 +194,17 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis
                   dataKey="date"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                   interval="preserveStartEnd"
                 />
-                <YAxis 
-                  label={{ 
-                    value: 'Количество', 
-                    angle: -90, 
+                <YAxis
+                  label={{
+                    value: 'Количество',
+                    angle: -90,
                     position: 'insideLeft',
                     offset: -10
                   }}
@@ -212,9 +212,9 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
                 <Tooltip />
                 <Legend />
                 {historyData.map((product, index) => (
-                  <Line 
+                  <Line
                     key={`${product.skuCode}_quantity`}
-                    type="monotone" 
+                    type="monotone"
                     dataKey={`${product.skuCode}_quantity`}
                     stroke={colors[index % colors.length]}
                     strokeWidth={2}
@@ -232,17 +232,17 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis
                   dataKey="date"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                   interval="preserveStartEnd"
                 />
-                <YAxis 
-                  label={{ 
-                    value: 'Количество', 
-                    angle: -90, 
+                <YAxis
+                  label={{
+                    value: 'Количество',
+                    angle: -90,
                     position: 'insideLeft',
                     offset: -10
                   }}
@@ -251,9 +251,9 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
                 <Legend />
                 {historyData.map((product, index) => (
                   <>
-                    <Line 
+                    <Line
                       key={`${product.skuCode}_expected`}
-                      type="monotone" 
+                      type="monotone"
                       dataKey={`${product.skuCode}_expected`}
                       stroke={colors[index % colors.length]}
                       strokeWidth={2}
@@ -261,9 +261,9 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
                       dot={{ fill: colors[index % colors.length], strokeWidth: 2, r: 3 }}
                       name={`${product.skuCode} - Ожидаемый`}
                     />
-                    <Line 
+                    <Line
                       key={`${product.skuCode}_quantity_compare`}
-                      type="monotone" 
+                      type="monotone"
                       dataKey={`${product.skuCode}_quantity`}
                       stroke={colors[index % colors.length]}
                       strokeWidth={2}
@@ -282,17 +282,17 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis
                   dataKey="date"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                   interval="preserveStartEnd"
                 />
-                <YAxis 
-                  label={{ 
-                    value: 'Расхождение', 
-                    angle: -90, 
+                <YAxis
+                  label={{
+                    value: 'Расхождение',
+                    angle: -90,
                     position: 'insideLeft',
                     offset: -10
                   }}
@@ -300,9 +300,9 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
                 <Tooltip />
                 <Legend />
                 {historyData.map((product, index) => (
-                  <Line 
+                  <Line
                     key={`${product.skuCode}_difference`}
-                    type="monotone" 
+                    type="monotone"
                     dataKey={`${product.skuCode}_difference`}
                     stroke={colors[index % colors.length]}
                     strokeWidth={2}
@@ -320,7 +320,7 @@ const SelectedProductsTrendChart = ({ warehouseCode, selectedProducts }: Selecte
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {historyData.map((product, index) => (
                 <div key={product.skuCode} className="flex items-center gap-2 text-sm">
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: colors[index % colors.length] }}
                   />

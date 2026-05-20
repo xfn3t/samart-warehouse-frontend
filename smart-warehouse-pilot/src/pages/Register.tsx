@@ -41,10 +41,10 @@ const Register = () => {
 
       const data = await response.json();
       localStorage.setItem('token', data.accessToken);
-      toast.success("Registration successful");
+      toast.success("Регистрация успешна");
       navigate("/warehouses");
     } catch (error: any) {
-      toast.error(error.message || "Registration failed");
+      toast.error(error.message || "Ошибка регистрации");
     } finally {
       setLoading(false);
     }
@@ -55,15 +55,15 @@ const Register = () => {
       <div className="w-full max-w-md p-8">
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Create Account</h1>
-            <p className="text-gray-600">Join Smart Warehouse system</p>
+            <h1 className="text-2xl font-bold">Создать учетную запись</h1>
+            <p className="text-gray-600">Присоединяйтесь к системе Умный Склад</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="text"
               name="name"
-              placeholder="Full Name"
+              placeholder="Полное имя"
               value={formData.name}
               onChange={handleChange}
               disabled={loading}
@@ -74,7 +74,7 @@ const Register = () => {
             <Input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder="Электронная почта"
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
@@ -85,7 +85,7 @@ const Register = () => {
             <Input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder="Пароль"
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
@@ -97,19 +97,19 @@ const Register = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  Создание учетной записи...
                 </>
               ) : (
-                "Create Account"
+                "Создать учетную запись"
               )}
             </Button>
           </form>
 
           <div className="text-center">
             <p className="text-gray-600">
-              Already have an account?{" "}
+              Уже есть учетная запись?{" "}
               <Link to="/login" className="text-blue-500 hover:text-blue-700 underline">
-                Sign in
+                Войти
               </Link>
             </p>
           </div>

@@ -19,7 +19,7 @@ const Dashboard = () => {
   }, [navigate]);
 
   if (!warehouseCode) {
-    return <div>No warehouse selected</div>;
+    return <div>Склад не выбран</div>;
   }
 
   return (

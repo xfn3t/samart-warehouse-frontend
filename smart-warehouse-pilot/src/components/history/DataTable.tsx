@@ -1,10 +1,23 @@
-// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\components\history\DataTable.tsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Download, FileText, BarChart3, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import {
+  Download,
+  FileText,
+  BarChart3,
+  ChevronUp,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
 import { apiClient } from "@/lib/api";
 import ProductHistoryModal from "./ProductHistoryModal";
 
@@ -37,14 +50,14 @@ interface DataTableProps {
   selectedProducts: string[];
 }
 
-const DataTable = ({ 
-  warehouseCode, 
-  filters, 
-  onExportExcel, 
-  onExportPDF, 
+const DataTable = ({
+  warehouseCode,
+  filters,
+  onExportExcel,
+  onExportPDF,
   onShowChart,
   onSelectionChange,
-  selectedProducts 
+  selectedProducts,
 }: DataTableProps) => {
   const [data, setData] = useState<ProductLastInventoryPageDTO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +65,9 @@ const DataTable = ({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProductsModal, setSelectedProductsModal] = useState<string[]>([]);
+  const [selectedProductsModal, setSelectedProductsModal] = useState<string[]>(
+    [],
+  );
   const rowsPerPage = 20;
 
   useEffect(() => {
@@ -72,16 +87,21 @@ const DataTable = ({
       };
 
       if (filters.q) params.q = filters.q;
-      if (filters.status && filters.status !== "all") params.statuses = [filters.status];
-      if (filters.robotCode && filters.robotCode !== "all") params.robots = [filters.robotCode];
-      if (filters.categories && filters.categories.length > 0) params.categories = filters.categories;
+      if (filters.status && filters.status !== "all")
+        params.statuses = [filters.status];
+      if (filters.robotCode && filters.robotCode !== "all")
+        params.robots = [filters.robotCode];
+      if (filters.categories && filters.categories.length > 0)
+        params.categories = filters.categories;
 
       const queryString = new URLSearchParams(params).toString();
-      const data = await apiClient.get(`/${warehouseCode}/inventory/history/last?${queryString}`);
+      const data = await apiClient.get(
+        `/${warehouseCode}/inventory/history/last?${queryString}`,
+      );
       setData(data);
     } catch (error) {
-      console.error('Failed to fetch last inventory data:', error);
-      setError('Failed to load data. Please try again.');
+      console.error("Failed to fetch last inventory data:", error);
+      setError("Не удалось загрузить данные. Пожалуйста, попробуйте снова.");
     } finally {
       setLoading(false);
     }
@@ -103,15 +123,15 @@ const DataTable = ({
     if (selectedProducts.length === data.items.length) {
       onSelectionChange([]);
     } else {
-      onSelectionChange(data.items.map(row => row.productCode));
+      onSelectionChange(data.items.map((row) => row.productCode));
     }
   };
 
   const handleSelectRow = (productCode: string) => {
     onSelectionChange(
-      selectedProducts.includes(productCode) 
-        ? selectedProducts.filter(code => code !== productCode) 
-        : [...selectedProducts, productCode]
+      selectedProducts.includes(productCode)
+        ? selectedProducts.filter((code) => code !== productCode)
+        : [...selectedProducts, productCode],
     );
   };
 
@@ -128,7 +148,8 @@ const DataTable = ({
   };
 
   const getStatusBadge = (statusCode: string) => {
-    let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+    let variant: "default" | "secondary" | "destructive" | "outline" =
+      "default";
 
     switch (statusCode) {
       case "OK":
@@ -144,33 +165,43 @@ const DataTable = ({
         variant = "outline";
     }
 
-    return <Badge variant={variant}>{statusCode}</Badge>;
+    const statusLabels: Record<string, string> = {
+      "OK": "OK",
+      "LOW_STOCK": "Низкий запас",
+      "CRITICAL": "Критический",
+    };
+
+    return <Badge variant={variant}>{statusLabels[statusCode] || statusCode || "Неизвестно"}</Badge>;
   };
 
   const SortIcon = ({ column }: { column: string }) => {
     if (sortColumn !== column) return null;
-    return sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="h-4 w-4" />
+    ) : (
+      <ChevronDown className="h-4 w-4" />
+    );
   };
 
   const formatDateSafe = (dateString: string): string => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "Н/Д";
 
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        return "Invalid Date";
+        return "Некорректная дата";
       }
 
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
 
       return `${day}.${month}.${year} ${hours}:${minutes}`;
     } catch (error) {
-      console.error('Date formatting error:', error);
-      return "Date Error";
+      console.error("Date formatting error:", error);
+      return "Ошибка даты";
     }
   };
 
@@ -181,7 +212,7 @@ const DataTable = ({
       <div className="bg-card border rounded-lg">
         <div className="p-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading data...</p>
+          <p className="text-muted-foreground">Загрузка данных...</p>
         </div>
       </div>
     );
@@ -192,7 +223,7 @@ const DataTable = ({
       <div className="bg-card border rounded-lg p-8 text-center">
         <p className="text-destructive mb-4">{error}</p>
         <Button onClick={fetchData} variant="outline">
-          Retry
+          Повторить
         </Button>
       </div>
     );
@@ -202,11 +233,17 @@ const DataTable = ({
     return (
       <div className="bg-card border rounded-lg p-8 text-center">
         <p className="text-muted-foreground">
-          {Object.keys(filters).length > 0 ? "No data found for current filters" : "No data available"}
+          {Object.keys(filters).length > 0
+            ? "Нет данных по текущим фильтрам"
+            : "Нет данных"}
         </p>
         {Object.keys(filters).length > 0 && (
-          <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
-            Clear filters and reload
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="mt-4"
+          >
+            Очистить фильтры и перезагрузить
           </Button>
         )}
       </div>
@@ -256,7 +293,10 @@ const DataTable = ({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedProducts.length === data.items.length && data.items.length > 0}
+                  checked={
+                    selectedProducts.length === data.items.length &&
+                    data.items.length > 0
+                  }
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -265,7 +305,7 @@ const DataTable = ({
                 className="cursor-pointer hover:bg-muted/50"
               >
                 <div className="flex items-center gap-1">
-                  Last Scanned
+                  Дата/Время
                   <SortIcon column="lastScannedAt" />
                 </div>
               </TableHead>
@@ -274,7 +314,7 @@ const DataTable = ({
                 className="cursor-pointer hover:bg-muted/50"
               >
                 <div className="flex items-center gap-1">
-                  Robot
+                  Робот
                   <SortIcon column="robotCode" />
                 </div>
               </TableHead>
@@ -283,7 +323,7 @@ const DataTable = ({
                 className="cursor-pointer hover:bg-muted/50"
               >
                 <div className="flex items-center gap-1">
-                  Product Code
+                  Код товара
                   <SortIcon column="productCode" />
                 </div>
               </TableHead>
@@ -292,7 +332,7 @@ const DataTable = ({
                 className="cursor-pointer hover:bg-muted/50"
               >
                 <div className="flex items-center gap-1">
-                  Product Name
+                  Название товара
                   <SortIcon column="productName" />
                 </div>
               </TableHead>
@@ -301,14 +341,14 @@ const DataTable = ({
                 className="cursor-pointer hover:bg-muted/50"
               >
                 <div className="flex items-center gap-1">
-                  Category
+                  Категория
                   <SortIcon column="category" />
                 </div>
               </TableHead>
-              <TableHead className="text-right">Expected</TableHead>
-              <TableHead className="text-right">Actual</TableHead>
-              <TableHead className="text-right">Difference</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ожидаемое</TableHead>
+              <TableHead className="text-right">Фактическое</TableHead>
+              <TableHead className="text-right">Разница</TableHead>
+              <TableHead>Статус</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -320,24 +360,29 @@ const DataTable = ({
                     onCheckedChange={() => handleSelectRow(row.productCode)}
                   />
                 </TableCell>
-                <TableCell>
-                  {formatDateSafe(row.lastScannedAt)}
-                </TableCell>
-                <TableCell>{row.robotCode || "N/A"}</TableCell>
-                <TableCell 
+                <TableCell>{formatDateSafe(row.lastScannedAt)}</TableCell>
+                <TableCell>{row.robotCode || "Н/Д"}</TableCell>
+                <TableCell
                   className="font-mono cursor-pointer text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                   onClick={() => handleProductClick(row.productCode)}
                 >
-                  {row.productCode || "N/A"}
+                  {row.productCode || "Н/Д"}
                 </TableCell>
-                <TableCell>{row.productName || "N/A"}</TableCell>
-                <TableCell>{row.category || "N/A"}</TableCell>
-                <TableCell className="text-right">{row.expectedQuantity ?? 0}</TableCell>
-                <TableCell className="text-right">{row.actualQuantity ?? 0}</TableCell>
-                <TableCell className={`text-right font-semibold ${
-                  row.difference !== 0 ? 'text-destructive' : ''
-                }`}>
-                  {row.difference > 0 ? '+' : ''}{row.difference ?? 0}
+                <TableCell>{row.productName || "Н/Д"}</TableCell>
+                <TableCell>{row.category || "Н/Д"}</TableCell>
+                <TableCell className="text-right">
+                  {row.expectedQuantity ?? 0}
+                </TableCell>
+                <TableCell className="text-right">
+                  {row.actualQuantity ?? 0}
+                </TableCell>
+                <TableCell
+                  className={`text-right font-semibold ${
+                    row.difference !== 0 ? "text-destructive" : ""
+                  }`}
+                >
+                  {row.difference > 0 ? "+" : ""}
+                  {row.difference ?? 0}
                 </TableCell>
                 <TableCell>{getStatusBadge(row.statusCode)}</TableCell>
               </TableRow>
@@ -348,24 +393,26 @@ const DataTable = ({
 
       <div className="p-4 border-t flex justify-between items-center">
         <span className="text-sm text-muted-foreground">
-          Page {currentPage + 1} of {totalPages} • Total records: {data.total}
+          Страница {currentPage + 1} из {totalPages} • Всего записей: {data.total}
         </span>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
             disabled={currentPage === 0}
           >
-            Previous
+            Предыдущая
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+            }
             disabled={currentPage >= totalPages - 1}
           >
-            Next
+            Следующая
           </Button>
         </div>
       </div>

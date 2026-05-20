@@ -28,28 +28,28 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/${warehouseCode}/predict/criticality/critical`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
         throw new Error("Empty response from server");
       }
-      
+
       const result = JSON.parse(text);
-      
+
       if (result.status === "ok") {
         setPredictions(result.predictions || []);
         setLastUpdated(Date.now());
-        toast.success(`Loaded ${result.predictions?.length || 0} critical predictions`);
+        toast.success(`Загружено ${result.predictions?.length || 0} критических прогнозов`);
       } else {
-        toast.error(result.message || "Failed to load predictions");
+        toast.error(result.message || "Не удалось загрузить прогнозы");
       }
     } catch (error) {
       console.error("Failed to fetch critical predictions:", error);
-      toast.error("Failed to load critical predictions from server");
+      toast.error("Не удалось загрузить критические прогнозы с сервера");
     } finally {
       setLoading(false);
     }
@@ -60,30 +60,30 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/${warehouseCode}/predict/criticality`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
         throw new Error("Empty response from server");
       }
-      
+
       const result = JSON.parse(text);
-      
+
       if (result.status === "ok") {
         // Берем только критические прогнозы из всех данных
         const criticalPredictions = result.data?.CRITICAL || [];
         setPredictions(criticalPredictions);
         setLastUpdated(Date.now());
-        toast.success(`Loaded ${criticalPredictions.length} critical predictions`);
+        toast.success(`Загружено ${criticalPredictions.length} критических прогнозов`);
       } else {
-        toast.error(result.message || "Failed to load predictions");
+        toast.error(result.message || "Не удалось загрузить прогнозы");
       }
     } catch (error) {
       console.error("Failed to fetch all predictions:", error);
-      toast.error("Failed to load predictions from server");
+      toast.error("Не удалось загрузить прогнозы с сервера");
     } finally {
       setLoading(false);
     }
@@ -97,15 +97,15 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
 
   // Обработчик обновления данных
   const handleRefresh = useCallback(() => {
-    toast.info("Updating critical predictions...");
+    toast.info("Обновление критических прогнозов...");
     fetchCriticalPredictions();
   }, [fetchCriticalPredictions]);
 
   // Функция для получения даты истощения запасов
   const getDepletionDate = (daysUntilStockout: number) => {
-    if (daysUntilStockout <= 0) return "Now";
-    if (daysUntilStockout > 365) return "More than 1 year";
-    
+    if (daysUntilStockout <= 0) return "Сейчас";
+    if (daysUntilStockout > 365) return "Более 1 года";
+
     const date = new Date();
     date.setDate(date.getDate() + Math.round(daysUntilStockout));
     return date.toLocaleDateString("ru-RU");
@@ -148,7 +148,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Critical AI Predictions - {warehouseCode}
+            Критические прогнозы ИИ - {warehouseCode}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -161,17 +161,17 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
             </Button>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-4 text-sm">
             <span className="text-muted-foreground">
-              Last updated: {new Date(lastUpdated).toLocaleTimeString("ru-RU")}
+              Обновлено: {new Date(lastUpdated).toLocaleTimeString("ru-RU")}
             </span>
             <span className="text-muted-foreground">
-              {criticalPredictions.length} critical items
+              {criticalPredictions.length} критических позиций
             </span>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -179,7 +179,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
               onClick={fetchCriticalPredictions}
               disabled={loading}
             >
-              Critical Only
+              Только критические
             </Button>
             <Button
               variant="outline"
@@ -187,23 +187,23 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
               onClick={fetchAllPredictions}
               disabled={loading}
             >
-              Refresh All
+              Обновить все
             </Button>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {loading ? (
           <div className="text-center py-8">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Loading critical predictions...</p>
+            <p className="text-sm text-muted-foreground">Загрузка критических прогнозов...</p>
           </div>
         ) : criticalPredictions.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              No critical predictions - all items are stable
+              Нет критических прогнозов - все позиции стабильны
             </p>
           </div>
         ) : (
@@ -221,43 +221,43 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
                     {getCriticalityIcon(prediction.critical_level)}
                     <div>
                       <h4 className="font-semibold">{prediction.sku}</h4>
-                      <p className="text-xs opacity-75">SKU</p>
+                      <p className="text-xs opacity-75">Артикул</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-semibold">
-                      {prediction.days_until_stockout <= 0 
-                        ? "OUT OF STOCK" 
-                        : `${Math.round(prediction.days_until_stockout)} days`
+                      {prediction.days_until_stockout <= 0
+                        ? "НЕТ В НАЛИЧИИ"
+                        : `${Math.round(prediction.days_until_stockout)} дн.`
                       }
                     </span>
-                    <p className="text-xs opacity-75">until stockout</p>
+                    <p className="text-xs opacity-75">до исчерпания</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="opacity-75 mb-1">Depletes</p>
+                    <p className="opacity-75 mb-1">Исчерпание</p>
                     <p className="font-semibold">{depletionDate}</p>
                   </div>
                   <div>
-                    <p className="opacity-75 mb-1">Rec. order</p>
+                    <p className="opacity-75 mb-1">Рек. заказ</p>
                     <p className="font-semibold">
                       {Math.round(prediction.recommended_order)}
                     </p>
                   </div>
                   <div>
-                    <p className="opacity-75 mb-1">Confidence</p>
+                    <p className="opacity-75 mb-1">Уверенность</p>
                     <p className="font-semibold">
                       {Math.round(prediction.confidence_score * 100)}%
                     </p>
                   </div>
                 </div>
-                
+
                 {prediction.last_updated && (
                   <div className="mt-2 pt-2 border-t border-opacity-20">
                     <p className="text-xs opacity-60">
-                      Updated: {new Date(prediction.last_updated).toLocaleTimeString("ru-RU")}
+                      Обновлено: {new Date(prediction.last_updated).toLocaleTimeString("ru-RU")}
                     </p>
                   </div>
                 )}

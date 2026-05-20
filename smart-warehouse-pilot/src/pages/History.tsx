@@ -1,4 +1,3 @@
-// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\pages\History.tsx
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "@/components/Header";
@@ -41,11 +40,13 @@ const History = () => {
 
   const fetchSummary = async () => {
     try {
-      const data = await apiClient.get(`/${warehouseCode}/inventory/history/summary`);
+      const data = await apiClient.get(
+        `/${warehouseCode}/inventory/history/summary`,
+      );
       setSummary(data);
     } catch (error) {
-      console.error('Failed to load history summary:', error);
-      toast.error("Failed to load history summary");
+      console.error("Failed to load history summary:", error);
+      toast.error("Не удалось загрузить сводку истории");
     } finally {
       setLoading(false);
     }
@@ -53,23 +54,23 @@ const History = () => {
 
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters);
-    toast.success("Filters applied");
+    toast.success("Фильтры применены");
   };
 
   const handleExportExcel = (selected: string[]) => {
-    toast.success(`Export ${selected.length} records to Excel`);
+    toast.success(`Экспорт ${selected.length} записей в Excel`);
   };
 
   const handleExportPDF = (selected: string[]) => {
-    toast.success(`Export ${selected.length} records to PDF`);
+    toast.success(`Экспорт ${selected.length} записей в PDF`);
   };
 
   const handleShowChart = (selected: string[]) => {
     if (selected.length === 0) {
-      toast.info("Please select products to view chart");
+      toast.info("Пожалуйста, выберите товары для просмотра графика");
     } else {
       setSelectedProducts(selected);
-      toast.success(`Showing chart for ${selected.length} products`);
+      toast.success(`Показан график для ${selected.length} товаров`);
     }
   };
 
@@ -78,16 +79,22 @@ const History = () => {
   };
 
   if (!warehouseCode) {
-    return <div>No warehouse selected</div>;
+    return <div>Склад не выбран</div>;
   }
 
   return (
     <div className="min-h-screen bg-background">
       <Header warehouseCode={warehouseCode} />
-      <Navigation warehouseCode={warehouseCode} onUploadClick={() => setUploadModalOpen(true)} />
+      <Navigation
+        warehouseCode={warehouseCode}
+        onUploadClick={() => setUploadModalOpen(true)}
+      />
 
       <main className="p-6 space-y-6">
-        <FilterPanel warehouseCode={warehouseCode} onFilterChange={handleFilterChange} />
+        <FilterPanel
+          warehouseCode={warehouseCode}
+          onFilterChange={handleFilterChange}
+        />
 
         <Card>
           <CardContent className="p-6">
@@ -103,27 +110,41 @@ const History = () => {
             ) : summary ? (
               <div className="grid grid-cols-4 gap-6 mb-6">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total scans in period</p>
-                  <p className="text-2xl font-bold text-foreground">{summary.total}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Unique products</p>
-                  <p className="text-2xl font-bold text-foreground">{summary.uniqueProducts}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Discrepancies found</p>
-                  <p className="text-2xl font-bold text-destructive">{summary.discrepancies}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg scan time</p>
+                  <p className="text-sm text-muted-foreground">
+                    Всего сканирований за период
+                  </p>
                   <p className="text-2xl font-bold text-foreground">
-                    {summary.avgZoneScanMinutes ? `${Math.round(summary.avgZoneScanMinutes)} min` : 'N/A'}
+                    {summary.total}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Уникальных товаров
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {summary.uniqueProducts}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Найдено расхождений
+                  </p>
+                  <p className="text-2xl font-bold text-destructive">
+                    {summary.discrepancies}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Среднее время сканирования</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {summary.avgZoneScanMinutes
+                      ? `${Math.round(summary.avgZoneScanMinutes)} мин`
+                      : "Н/Д"}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
-                <p className="text-muted-foreground">Failed to load summary</p>
+                <p className="text-muted-foreground">Не удалось загрузить сводку</p>
               </div>
             )}
           </CardContent>
@@ -145,14 +166,14 @@ const History = () => {
         />
 
         {/* График остатков по выбранным товарам */}
-        <SelectedProductsTrendChart 
+        <SelectedProductsTrendChart
           warehouseCode={warehouseCode}
           selectedProducts={selectedProducts}
         />
       </main>
 
-      <CSVUploadModal 
-        open={uploadModalOpen} 
+      <CSVUploadModal
+        open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         warehouseCode={warehouseCode}
       />

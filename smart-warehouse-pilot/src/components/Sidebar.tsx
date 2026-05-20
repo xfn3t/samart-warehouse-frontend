@@ -11,12 +11,12 @@ const Sidebar = ({ className }: SidebarProps) => {
 
   const navigation = [
     {
-      name: "Warehouses",
+      name: "Склады",
       href: "/warehouses",
       icon: Warehouse,
     },
     {
-      name: "Robots",
+      name: "Роботы",
       href: "/robots",
       icon: Bot,
     },
@@ -27,7 +27,7 @@ const Sidebar = ({ className }: SidebarProps) => {
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
           <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
-            Management
+            Управление
           </h2>
           <div className="space-y-1">
             {navigation.map((item) => {

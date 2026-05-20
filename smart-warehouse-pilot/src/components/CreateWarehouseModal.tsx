@@ -39,7 +39,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
       ...prev,
       [name]: name.includes("MaxSize") ? parseInt(value) || 0 : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
@@ -50,31 +50,31 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
     const newErrors: Record<string, string> = {};
 
     if (!formData.code.trim()) {
-      newErrors.code = "Code is required";
+      newErrors.code = "Код обязателен";
     } else if (formData.code.length > 50) {
-      newErrors.code = "Code must not exceed 50 characters";
+      newErrors.code = "Код не должен превышать 50 символов";
     }
 
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Название обязательно";
     } else if (formData.name.length > 255) {
-      newErrors.name = "Name must not exceed 255 characters";
+      newErrors.name = "Название не должно превышать 255 символов";
     }
 
     if (!formData.zoneMaxSize || formData.zoneMaxSize <= 0) {
-      newErrors.zoneMaxSize = "Zone max size must be positive";
+      newErrors.zoneMaxSize = "Размер зоны должен быть положительным";
     }
 
     if (!formData.rowMaxSize || formData.rowMaxSize <= 0) {
-      newErrors.rowMaxSize = "Row max size must be positive";
+      newErrors.rowMaxSize = "Размер ряда должен быть положительным";
     }
 
     if (!formData.shelfMaxSize || formData.shelfMaxSize <= 0) {
-      newErrors.shelfMaxSize = "Shelf max size must be positive";
+      newErrors.shelfMaxSize = "Размер полки должен быть положительным";
     }
 
     if (formData.location.length > 255) {
-      newErrors.location = "Location must not exceed 255 characters";
+      newErrors.location = "Местоположение не должно превышать 255 символов";
     }
 
     setErrors(newErrors);
@@ -83,9 +83,9 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
-      toast.error("Please fix the form errors");
+      toast.error("Исправьте ошибки в форме");
       return;
     }
 
@@ -103,14 +103,14 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
       });
 
       if (response.status === 201) {
-        toast.success("Warehouse created successfully");
+        toast.success("Склад успешно создан");
         resetForm();
         onClose();
         onWarehouseCreated();
       } else if (response.status === 400 || response.status === 409) {
         const errorData = await response.json();
-        const errorMessage = errorData.message || "Failed to create warehouse";
-        
+        const errorMessage = errorData.message || "Не удалось создать склад";
+
         // Set specific field errors if available
         if (errorData.errors) {
           const fieldErrors: Record<string, string> = {};
@@ -119,14 +119,14 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
           });
           setErrors(fieldErrors);
         }
-        
+
         toast.error(errorMessage);
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error: any) {
       console.error('Failed to create warehouse:', error);
-      toast.error(error.message || "Failed to create warehouse");
+      toast.error(error.message || "Не удалось создать склад");
     } finally {
       setLoading(false);
     }
@@ -155,20 +155,20 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Warehouse className="h-5 w-5" />
-            Create New Warehouse
+            Создать новый склад
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Warehouse Code *</Label>
+              <Label htmlFor="code">Код склада *</Label>
               <Input
                 id="code"
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                placeholder="e.g., WH-001"
+                placeholder="например, WH-001"
                 className={errors.code ? "border-destructive" : ""}
                 disabled={loading}
               />
@@ -178,13 +178,13 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Warehouse Name *</Label>
+              <Label htmlFor="name">Название склада *</Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="e.g., Main Warehouse"
+                placeholder="например, Главный склад"
                 className={errors.name ? "border-destructive" : ""}
                 disabled={loading}
               />
@@ -196,7 +196,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="zoneMaxSize">Zones *</Label>
+              <Label htmlFor="zoneMaxSize">Зоны *</Label>
               <Input
                 id="zoneMaxSize"
                 name="zoneMaxSize"
@@ -211,11 +211,11 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               {errors.zoneMaxSize && (
                 <p className="text-sm text-destructive">{errors.zoneMaxSize}</p>
               )}
-              <p className="text-xs text-muted-foreground">Number of zones</p>
+              <p className="text-xs text-muted-foreground">Количество зон</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rowMaxSize">Rows *</Label>
+              <Label htmlFor="rowMaxSize">Ряды *</Label>
               <Input
                 id="rowMaxSize"
                 name="rowMaxSize"
@@ -230,11 +230,11 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               {errors.rowMaxSize && (
                 <p className="text-sm text-destructive">{errors.rowMaxSize}</p>
               )}
-              <p className="text-xs text-muted-foreground">Rows per zone</p>
+              <p className="text-xs text-muted-foreground">Рядов в зоне</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="shelfMaxSize">Shelves *</Label>
+              <Label htmlFor="shelfMaxSize">Полки *</Label>
               <Input
                 id="shelfMaxSize"
                 name="shelfMaxSize"
@@ -249,18 +249,18 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               {errors.shelfMaxSize && (
                 <p className="text-sm text-destructive">{errors.shelfMaxSize}</p>
               )}
-              <p className="text-xs text-muted-foreground">Shelves per row</p>
+              <p className="text-xs text-muted-foreground">Полок в ряду</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">Местоположение</Label>
             <Input
               id="location"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="e.g., Building A, Floor 2"
+              placeholder="например, Корпус А, Этаж 2"
               className={errors.location ? "border-destructive" : ""}
               disabled={loading}
             />
@@ -268,7 +268,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               <p className="text-sm text-destructive">{errors.location}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Optional warehouse location description
+              Необязательное описание местоположения склада
             </p>
           </div>
 
@@ -279,7 +279,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               onClick={handleClose}
               disabled={loading}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               type="submit"
@@ -288,10 +288,10 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Создание...
                 </>
               ) : (
-                "Create Warehouse"
+                "Создать склад"
               )}
             </Button>
           </div>

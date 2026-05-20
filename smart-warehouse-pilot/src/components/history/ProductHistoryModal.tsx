@@ -1,5 +1,4 @@
-﻿// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\components\history\ProductHistoryModal.tsx
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
@@ -48,12 +47,12 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
     try {
       const params = new URLSearchParams();
       productCodes.forEach(code => params.append('productCodes', code));
-      
+
       const data = await apiClient.get(`/${warehouseCode}/inventory/history/bySkus?${params.toString()}`);
       setHistoryData(data);
     } catch (error) {
       console.error('Failed to fetch product history:', error);
-      setError('Failed to load product history');
+      setError('Не удалось загрузить историю товара');
     } finally {
       setLoading(false);
     }
@@ -94,7 +93,7 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
 
   // Generate colors for each product
   const colors = [
-    '#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', 
+    '#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6',
     '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#14b8a6'
   ];
 
@@ -103,14 +102,14 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Product History: {productCodes.join(', ')}
+            История товара: {productCodes.join(', ')}
           </DialogTitle>
         </DialogHeader>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            <span>Loading product history...</span>
+            <span>Загрузка истории товара...</span>
           </div>
         ) : error ? (
           <div className="flex justify-center items-center h-64 text-destructive">
@@ -118,17 +117,17 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
           </div>
         ) : historyData.length === 0 ? (
           <div className="flex justify-center items-center h-64 text-muted-foreground">
-            No history data available for selected products
+            Нет исторических данных по выбранным товарам
           </div>
         ) : (
           <div className="space-y-6">
             {/* Quantity Trends Chart */}
             <div className="bg-card border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Quantity Trends</h3>
+              <h3 className="text-lg font-semibold mb-4">Тренды количества</h3>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
+                  <XAxis
                     dataKey="date"
                     angle={-45}
                     textAnchor="end"
@@ -139,26 +138,26 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
                   <Tooltip />
                   <Legend />
                   {historyData.map((product, index) => (
-                    <Line 
+                    <Line
                       key={`${product.skuCode}_expected`}
-                      type="monotone" 
+                      type="monotone"
                       dataKey={`${product.skuCode}_expected`}
                       stroke={colors[index % colors.length]}
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       dot={{ fill: colors[index % colors.length], strokeWidth: 2 }}
-                      name={`${product.skuCode} - Expected`}
+                      name={`${product.skuCode} - Ожидаемое`}
                     />
                   ))}
                   {historyData.map((product, index) => (
-                    <Line 
+                    <Line
                       key={`${product.skuCode}_actual`}
-                      type="monotone" 
+                      type="monotone"
                       dataKey={`${product.skuCode}_actual`}
                       stroke={colors[index % colors.length]}
                       strokeWidth={2}
                       dot={{ fill: colors[index % colors.length], strokeWidth: 2 }}
-                      name={`${product.skuCode} - Actual`}
+                      name={`${product.skuCode} - Фактическое`}
                     />
                   ))}
                 </LineChart>
@@ -167,11 +166,11 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
 
             {/* Difference Trends Chart */}
             <div className="bg-card border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Difference Trends</h3>
+              <h3 className="text-lg font-semibold mb-4">Тренды расхождений</h3>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
+                  <XAxis
                     dataKey="date"
                     angle={-45}
                     textAnchor="end"
@@ -182,14 +181,14 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
                   <Tooltip />
                   <Legend />
                   {historyData.map((product, index) => (
-                    <Line 
+                    <Line
                       key={`${product.skuCode}_difference`}
-                      type="monotone" 
+                      type="monotone"
                       dataKey={`${product.skuCode}_difference`}
                       stroke={colors[index % colors.length]}
                       strokeWidth={2}
                       dot={{ fill: colors[index % colors.length], strokeWidth: 2 }}
-                      name={`${product.skuCode} - Difference`}
+                      name={`${product.skuCode} - Расхождение`}
                     />
                   ))}
                 </LineChart>
@@ -206,12 +205,12 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Date/Time</th>
-                        <th className="text-left p-2">Robot</th>
-                        <th className="text-right p-2">Expected</th>
-                        <th className="text-right p-2">Actual</th>
-                        <th className="text-right p-2">Difference</th>
-                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">Дата/Время</th>
+                        <th className="text-left p-2">Робот</th>
+                        <th className="text-right p-2">Ожидаемое</th>
+                        <th className="text-right p-2">Фактическое</th>
+                        <th className="text-right p-2">Разница</th>
+                        <th className="text-left p-2">Статус</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -226,7 +225,7 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
                               minute: "2-digit"
                             })}
                           </td>
-                          <td className="p-2">{item.robotCode || "N/A"}</td>
+                          <td className="p-2">{item.robotCode || "Н/Д"}</td>
                           <td className="p-2 text-right">{item.expectedQuantity}</td>
                           <td className="p-2 text-right">{item.quantity}</td>
                           <td className={`p-2 text-right font-semibold ${
@@ -236,8 +235,8 @@ const ProductHistoryModal = ({ warehouseCode, productCodes, open, onClose }: Pro
                           </td>
                           <td className="p-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              item.status === 'OK' 
-                                ? 'bg-green-100 text-green-800' 
+                              item.status === 'OK'
+                                ? 'bg-green-100 text-green-800'
                                 : item.status === 'LOW_STOCK'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-red-100 text-red-800'

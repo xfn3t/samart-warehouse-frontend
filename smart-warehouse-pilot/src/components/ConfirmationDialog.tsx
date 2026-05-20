@@ -27,8 +27,8 @@ const ConfirmationDialog = ({
   onConfirm,
   title,
   description,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText = "Подтвердить",
+  cancelText = "Отмена",
   variant = "default",
   loading = false,
 }: ConfirmationDialogProps) => {
@@ -38,8 +38,8 @@ const ConfirmationDialog = ({
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-full ${
-              variant === "destructive" 
-                ? "bg-destructive/10 text-destructive" 
+              variant === "destructive"
+                ? "bg-destructive/10 text-destructive"
                 : "bg-primary/10 text-primary"
             }`}>
               <AlertTriangle className="h-5 w-5" />
@@ -52,7 +52,7 @@ const ConfirmationDialog = ({
             </div>
           </div>
         </DialogHeader>
-        
+
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0">
           <Button
             type="button"
@@ -73,7 +73,7 @@ const ConfirmationDialog = ({
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Deleting...
+                Удаление...
               </>
             ) : (
               confirmText

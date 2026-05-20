@@ -76,7 +76,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
       }
     } catch (error) {
       console.error('Failed to fetch warehouses:', error);
-      toast.error("Failed to load warehouses");
+      toast.error("Не удалось загрузить склады");
     }
   };
 
@@ -84,11 +84,11 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "batteryLevel" || name === "currentZone" || name === "currentRow" || name === "currentShelf" 
-        ? parseInt(value) || 0 
+      [name]: name === "batteryLevel" || name === "currentZone" || name === "currentRow" || name === "currentShelf"
+        ? parseInt(value) || 0
         : value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
@@ -99,7 +99,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
       ...prev,
       [name]: value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
@@ -109,33 +109,33 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
     const newErrors: Record<string, string> = {};
 
     if (!formData.code) {
-      newErrors.code = "Code is required";
+      newErrors.code = "Код обязателен";
     } else if (!/^RB-\d{4}$/.test(formData.code)) {
-      newErrors.code = "Code must follow pattern RB-XXXX (4 digits)";
+      newErrors.code = "Код должен следовать шаблону RB-XXXX (4 цифры)";
     }
 
     if (!formData.status) {
-      newErrors.status = "Status is required";
+      newErrors.status = "Статус обязателен";
     }
 
     if (formData.batteryLevel < 0 || formData.batteryLevel > 100) {
-      newErrors.batteryLevel = "Battery level must be between 0 and 100";
+      newErrors.batteryLevel = "Уровень заряда должен быть от 0 до 100";
     }
 
     if (formData.currentZone < 0) {
-      newErrors.currentZone = "Zone must be non-negative";
+      newErrors.currentZone = "Зона не может быть отрицательной";
     }
 
     if (formData.currentRow < 0) {
-      newErrors.currentRow = "Row must be non-negative";
+      newErrors.currentRow = "Ряд не может быть отрицательным";
     }
 
     if (formData.currentShelf < 0) {
-      newErrors.currentShelf = "Shelf must be non-negative";
+      newErrors.currentShelf = "Полка не может быть отрицательной";
     }
 
     if (!formData.warehouseCode) {
-      newErrors.warehouseCode = "Warehouse is required";
+      newErrors.warehouseCode = "Склад обязателен";
     }
 
     setErrors(newErrors);
@@ -144,9 +144,9 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
-      toast.error("Please fix the form errors");
+      toast.error("Исправьте ошибки в форме");
       return;
     }
 
@@ -165,13 +165,13 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
 
       if (response.ok) {
         const data = await response.json();
-        toast.success("Robot updated successfully");
+        toast.success("Робот успешно обновлен");
         onClose();
         onRobotUpdated();
       } else {
         const errorData = await response.json();
-        const errorMessage = errorData.message || "Failed to update robot";
-        
+        const errorMessage = errorData.message || "Не удалось обновить робота";
+
         if (errorData.errors) {
           const fieldErrors: Record<string, string> = {};
           errorData.errors.forEach((error: any) => {
@@ -179,12 +179,12 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
           });
           setErrors(fieldErrors);
         }
-        
+
         toast.error(errorMessage);
       }
     } catch (error: any) {
       console.error('Failed to update robot:', error);
-      toast.error(error.message || "Failed to update robot");
+      toast.error(error.message || "Не удалось обновить робота");
     } finally {
       setLoading(false);
     }
@@ -201,44 +201,44 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
-            Edit Robot - {robot?.code}
+            Редактировать робота - {robot?.code}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Robot Code *</Label>
+              <Label htmlFor="code">Код робота *</Label>
               <Input
                 id="code"
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                placeholder="e.g., RB-0001"
+                placeholder="например, RB-0001"
                 className={errors.code ? "border-destructive" : ""}
                 disabled={loading}
               />
               {errors.code && (
                 <p className="text-sm text-destructive">{errors.code}</p>
               )}
-              <p className="text-xs text-muted-foreground">Must follow pattern RB-XXXX (4 digits)</p>
+              <p className="text-xs text-muted-foreground">Должен следовать шаблону RB-XXXX (4 цифры)</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
+              <Label htmlFor="status">Статус *</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => handleSelectChange("status", value)}
                 disabled={loading}
               >
                 <SelectTrigger className={errors.status ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Выберите статус" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="IDLE">Idle</SelectItem>
-                  <SelectItem value="WORKING">Working</SelectItem>
-                  <SelectItem value="CHARGING">Charging</SelectItem>
-                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                  <SelectItem value="IDLE">Ожидание</SelectItem>
+                  <SelectItem value="WORKING">Работает</SelectItem>
+                  <SelectItem value="CHARGING">Зарядка</SelectItem>
+                  <SelectItem value="MAINTENANCE">Обслуживание</SelectItem>
                 </SelectContent>
               </Select>
               {errors.status && (
@@ -248,7 +248,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="batteryLevel">Battery Level *</Label>
+            <Label htmlFor="batteryLevel">Уровень заряда *</Label>
             <Input
               id="batteryLevel"
               name="batteryLevel"
@@ -267,7 +267,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currentZone">Current Zone</Label>
+              <Label htmlFor="currentZone">Текущая зона</Label>
               <Input
                 id="currentZone"
                 name="currentZone"
@@ -284,7 +284,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currentRow">Current Row</Label>
+              <Label htmlFor="currentRow">Текущий ряд</Label>
               <Input
                 id="currentRow"
                 name="currentRow"
@@ -301,7 +301,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currentShelf">Current Shelf</Label>
+              <Label htmlFor="currentShelf">Текущая полка</Label>
               <Input
                 id="currentShelf"
                 name="currentShelf"
@@ -319,14 +319,14 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="warehouseCode">Warehouse *</Label>
+            <Label htmlFor="warehouseCode">Склад *</Label>
             <Select
               value={formData.warehouseCode}
               onValueChange={(value) => handleSelectChange("warehouseCode", value)}
               disabled={loading || warehouses.length === 0}
             >
               <SelectTrigger className={errors.warehouseCode ? "border-destructive" : ""}>
-                <SelectValue placeholder={warehouses.length === 0 ? "No warehouses available" : "Select warehouse"} />
+                <SelectValue placeholder={warehouses.length === 0 ? "Нет доступных складов" : "Выберите склад"} />
               </SelectTrigger>
               <SelectContent>
                 {warehouses.map((warehouse) => (
@@ -348,7 +348,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
               onClick={handleClose}
               disabled={loading}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               type="submit"
@@ -357,10 +357,10 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
+                  Обновление...
                 </>
               ) : (
-                "Update Robot"
+                "Обновить робота"
               )}
             </Button>
           </div>

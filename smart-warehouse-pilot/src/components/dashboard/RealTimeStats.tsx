@@ -44,7 +44,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
     warehouseCode,
     onStatsUpdate: (data: any) => {
       setStats(data);
-      toast.info('Stats updated in real-time');
+      toast.info('Статистика обновлена в реальном времени');
     }
   });
 
@@ -72,7 +72,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
 
     } catch (error) {
       console.error('Failed to fetch realtime stats:', error);
-      toast.error("Failed to load realtime stats");
+      toast.error("Не удалось загрузить статистику в реальном времени");
     } finally {
       setLoading(false);
     }
@@ -115,7 +115,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
     return (
       <div className="space-y-4 h-full">
         <div className="text-center py-8">
-          <p className="text-muted-foreground">Failed to load stats</p>
+          <p className="text-muted-foreground">Не удалось загрузить статистику</p>
         </div>
       </div>
     );
@@ -126,10 +126,10 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
   return (
     <div className="space-y-4 h-full">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Real-time Statistics</h3>
+        <h3 className="text-lg font-semibold">Статистика в реальном времени</h3>
         <Badge variant={isConnected ? "default" : "secondary"} className="flex items-center gap-1">
           {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-          {isConnected ? "Live" : "Offline"}
+          {isConnected ? "Онлайн" : "Офлайн"}
         </Badge>
       </div>
 
@@ -138,7 +138,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Activity className="mr-2 h-4 w-4 text-green-500" />
-              Active Robots
+              Активные роботы
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -152,7 +152,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Package className="mr-2 h-4 w-4 text-blue-500" />
-              Scans Today
+              Сканирований сегодня
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -164,7 +164,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
-              Stock Alerts
+              Оповещения о запасах
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -172,7 +172,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
               {metrics.low_stock_alerts + metrics.out_of_stock_alerts}
             </div>
             <div className="text-xs text-muted-foreground">
-              {metrics.low_stock_alerts} low + {metrics.out_of_stock_alerts} out
+              {metrics.low_stock_alerts} низкий + {metrics.out_of_stock_alerts} отсутствует
             </div>
           </CardContent>
         </Card>
@@ -181,12 +181,12 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Battery className="mr-2 h-4 w-4 text-yellow-500" />
-              Avg Battery
+              Средний заряд
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.battery_levels ? Math.round(metrics.battery_levels.average) + '%' : 'N/A'}
+              {metrics.battery_levels ? Math.round(metrics.battery_levels.average) + '%' : 'Н/Д'}
             </div>
             {metrics.battery_levels && (
               <div className="text-xs text-muted-foreground">
@@ -199,7 +199,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
 
       <Card className="flex-1">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Robot Activity (Last 12 Hours)</CardTitle>
+          <CardTitle className="text-sm font-medium">Активность роботов (за 12 часов)</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>

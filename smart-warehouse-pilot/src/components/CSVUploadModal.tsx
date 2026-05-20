@@ -1,9 +1,20 @@
-// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\components\CSVUploadModal.tsx
 import { useState, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +24,11 @@ interface CSVUploadModalProps {
   warehouseCode: string;
 }
 
-const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) => {
+const CSVUploadModal = ({
+  open,
+  onClose,
+  warehouseCode,
+}: CSVUploadModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [preview, setPreview] = useState<string[][]>([]);
@@ -75,48 +90,50 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
 
       // Make the actual API call with proper multipart/form-data
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8080/api/${warehouseCode}/inventory/import/csv`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Don't set Content-Type - let browser set it with boundary
+      const response = await fetch(
+        `http://localhost:8080/api/${warehouseCode}/inventory/import/csv`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type - let browser set it with boundary
+          },
+          body: formData,
         },
-        body: formData,
-      });
+      );
 
       clearInterval(progressInterval);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = "Ошибка загрузки файла";
-        
+
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
         } catch {
           errorMessage = errorText || errorMessage;
         }
-        
+
         throw new Error(errorMessage);
       }
 
       setProgress(100);
 
       toast.success("Файл успешно загружен и данные обработаны");
-      
+
       setTimeout(() => {
         onClose();
         setFile(null);
         setPreview([]);
         setProgress(0);
         setUploading(false);
-        
+
         // Reload the page to show updated data
         window.location.reload();
       }, 1000);
-
     } catch (error: any) {
-      console.error('CSV upload failed:', error);
+      console.error("CSV upload failed:", error);
       toast.error(error.message || "Ошибка загрузки файла");
       setProgress(0);
       setUploading(false);
@@ -127,7 +144,9 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Загрузка данных инвентаризации - {warehouseCode}</DialogTitle>
+          <DialogTitle>
+            Загрузка данных инвентаризации - {warehouseCode}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -136,7 +155,7 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
               isDragging
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
-            } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -148,13 +167,20 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
             <input
               type="file"
               accept=".csv"
-              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+              onChange={(e) =>
+                e.target.files?.[0] && handleFileSelect(e.target.files[0])
+              }
               className="hidden"
               id="file-upload"
               disabled={uploading}
             />
             <label htmlFor="file-upload">
-              <Button variant="outline" className="mt-2" asChild disabled={uploading}>
+              <Button
+                variant="outline"
+                className="mt-2"
+                asChild
+                disabled={uploading}
+              >
                 <span>Выбрать файл</span>
               </Button>
             </label>
@@ -166,7 +192,8 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
               <li>Формат: CSV с разделителем ";"</li>
               <li>Кодировка: UTF-8</li>
               <li>
-                Обязательные колонки: product_id, product_name, quantity, zone, date
+                Обязательные колонки: product_id, product_name, quantity, zone,
+                date
               </li>
               <li>Максимальный размер: 10MB</li>
             </ul>
@@ -192,7 +219,9 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
                 <Progress value={progress} />
                 {uploading && (
                   <p className="text-sm text-muted-foreground text-center">
-                    {progress < 100 ? "Загрузка и обработка данных..." : "Завершение..."}
+                    {progress < 100
+                      ? "Загрузка и обработка данных..."
+                      : "Завершение..."}
                   </p>
                 )}
               </div>
@@ -235,8 +264,8 @@ const CSVUploadModal = ({ open, onClose, warehouseCode }: CSVUploadModalProps) =
             <Button variant="outline" onClick={onClose} disabled={uploading}>
               Отмена
             </Button>
-            <Button 
-              onClick={handleUpload} 
+            <Button
+              onClick={handleUpload}
               disabled={!file || uploading || progress > 0}
             >
               {uploading ? "Загрузка..." : "Загрузить"}

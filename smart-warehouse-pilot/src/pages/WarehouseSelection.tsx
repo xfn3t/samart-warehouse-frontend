@@ -1,9 +1,19 @@
-﻿// File: C:\Users\Admin\RTC\smart-warehouse-pilot\src\pages\WarehouseSelection.tsx
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Warehouse, LogOut, Plus, Edit, Trash2, Bot, Activity, Battery, AlertTriangle, Package } from "lucide-react";
+import {
+  Warehouse,
+  LogOut,
+  Plus,
+  Edit,
+  Trash2,
+  Bot,
+  Activity,
+  Battery,
+  AlertTriangle,
+  Package,
+} from "lucide-react";
 import { toast } from "sonner";
 import CreateWarehouseModal from "@/components/CreateWarehouseModal";
 import EditWarehouseModal from "@/components/EditWarehouseModal";
@@ -43,12 +53,15 @@ interface WarehouseStatsDTO {
 const WarehouseSelection = () => {
   const navigate = useNavigate();
   const [warehouses, setWarehouses] = useState<WarehouseDTO[]>([]);
-  const [warehouseStats, setWarehouseStats] = useState<Record<string, WarehouseStatsDTO>>({});
+  const [warehouseStats, setWarehouseStats] = useState<
+    Record<string, WarehouseStatsDTO>
+  >({});
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseDTO | null>(null);
+  const [selectedWarehouse, setSelectedWarehouse] =
+    useState<WarehouseDTO | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -63,29 +76,30 @@ const WarehouseSelection = () => {
 
   const fetchWarehouses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/warehouse', {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/api/warehouse", {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
         // Убедимся, что данные имеют правильную структуру
-        const validWarehouses = data.filter((warehouse: any) => 
-          warehouse && 
-          typeof warehouse.id === 'number' &&
-          typeof warehouse.code === 'string' &&
-          typeof warehouse.name === 'string'
+        const validWarehouses = data.filter(
+          (warehouse: any) =>
+            warehouse &&
+            typeof warehouse.id === "number" &&
+            typeof warehouse.code === "string" &&
+            typeof warehouse.name === "string",
         );
         setWarehouses(validWarehouses);
       } else {
-        throw new Error('Failed to fetch warehouses');
+        throw new Error("Failed to fetch warehouses");
       }
     } catch (error) {
-      console.error('Failed to fetch warehouses:', error);
-      toast.error("Failed to load warehouses");
+      console.error("Failed to fetch warehouses:", error);
+      toast.error("Не удалось загрузить склады");
     } finally {
       setLoading(false);
     }
@@ -93,16 +107,19 @@ const WarehouseSelection = () => {
 
   const fetchAllWarehouseStats = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const stats: Record<string, WarehouseStatsDTO> = {};
 
       for (const warehouse of warehouses) {
         try {
-          const response = await fetch(`http://localhost:8080/api/dashboard/warehouses/${warehouse.code}/stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
+          const response = await fetch(
+            `http://localhost:8080/api/dashboard/warehouses/${warehouse.code}/stats`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          });
+          );
 
           if (response.ok) {
             const statsData = await response.json();
@@ -112,37 +129,40 @@ const WarehouseSelection = () => {
             }
           }
         } catch (error) {
-          console.error(`Failed to fetch stats for warehouse ${warehouse.code}:`, error);
+          console.error(
+            `Failed to fetch stats for warehouse ${warehouse.code}:`,
+            error,
+          );
         }
       }
 
       setWarehouseStats(stats);
     } catch (error) {
-      console.error('Failed to fetch warehouse stats:', error);
+      console.error("Failed to fetch warehouse stats:", error);
     }
   };
 
   const handleWarehouseSelect = (warehouseCode: string) => {
-    localStorage.setItem('selectedWarehouse', warehouseCode);
+    localStorage.setItem("selectedWarehouse", warehouseCode);
     navigate(`/dashboard/${warehouseCode}`);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('selectedWarehouse');
-    navigate('/login');
+    localStorage.removeItem("token");
+    localStorage.removeItem("selectedWarehouse");
+    navigate("/login");
   };
 
   const handleWarehouseCreated = () => {
     fetchWarehouses();
-    toast.success("Warehouse created successfully!");
+    toast.success("Склад успешно создан!");
   };
 
   const handleWarehouseUpdated = () => {
     fetchWarehouses();
     setEditModalOpen(false);
     setSelectedWarehouse(null);
-    toast.success("Warehouse updated successfully!");
+    toast.success("Склад успешно обновлён!");
   };
 
   const handleEditWarehouse = (warehouse: WarehouseDTO) => {
@@ -160,25 +180,28 @@ const WarehouseSelection = () => {
 
     setDeleting(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/warehouse/${selectedWarehouse.code}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8080/api/warehouse/${selectedWarehouse.code}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
-        toast.success("Warehouse deleted successfully!");
+        toast.success("Склад успешно удалён!");
         fetchWarehouses(); // Обновляем данные после удаления
         setDeleteDialogOpen(false);
         setSelectedWarehouse(null);
       } else {
-        throw new Error('Failed to delete warehouse');
+        throw new Error("Failed to delete warehouse");
       }
     } catch (error) {
-      console.error('Failed to delete warehouse:', error);
-      toast.error("Failed to delete warehouse");
+      console.error("Failed to delete warehouse:", error);
+      toast.error("Не удалось удалить склад");
     } finally {
       setDeleting(false);
     }
@@ -186,7 +209,7 @@ const WarehouseSelection = () => {
 
   const getCapacityColor = (capacity: string) => {
     try {
-      const percent = parseInt(capacity.replace('%', ''));
+      const percent = parseInt(capacity.replace("%", ""));
       if (percent >= 80) return "text-red-500";
       if (percent >= 60) return "text-yellow-500";
       return "text-green-500";
@@ -206,7 +229,7 @@ const WarehouseSelection = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading warehouses...</p>
+          <p>Загрузка складов...</p>
         </div>
       </div>
     );
@@ -216,10 +239,10 @@ const WarehouseSelection = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Warehouse Management</h1>
+          <h1 className="text-xl font-semibold">Управление складами</h1>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            Выйти
           </Button>
         </div>
       </header>
@@ -231,18 +254,18 @@ const WarehouseSelection = () => {
             <Button
               variant="secondary"
               className="w-full justify-start"
-              onClick={() => navigate('/warehouses')}
+              onClick={() => navigate("/warehouses")}
             >
               <Warehouse className="mr-2 h-4 w-4" />
-              Warehouses
+              Склады
             </Button>
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => navigate('/robots')}
+              onClick={() => navigate("/robots")}
             >
               <Bot className="mr-2 h-4 w-4" />
-              Robots
+              Роботы
             </Button>
           </div>
         </div>
@@ -251,14 +274,14 @@ const WarehouseSelection = () => {
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-2xl font-bold">All Warehouses</h2>
+              <h2 className="text-2xl font-bold">Все склады</h2>
               <p className="text-gray-600">
-                Manage your warehouse locations and monitor their status
+                Управляйте расположением складов и отслеживайте их состояние
               </p>
             </div>
             <Button onClick={() => setCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Warehouse
+              Создать склад
             </Button>
           </div>
 
@@ -271,10 +294,10 @@ const WarehouseSelection = () => {
               <CardContent className="flex flex-col items-center justify-center h-40 p-6">
                 <Plus className="h-12 w-12 text-gray-400 mb-2" />
                 <p className="text-lg font-medium text-gray-600 text-center">
-                  Create New Warehouse
+                  Создать новый склад
                 </p>
                 <p className="text-sm text-gray-500 text-center mt-2">
-                  Add a new warehouse location
+                  Добавить новое расположение склада
                 </p>
               </CardContent>
             </Card>
@@ -282,11 +305,14 @@ const WarehouseSelection = () => {
             {/* Existing Warehouses */}
             {warehouses.map((warehouse) => {
               const stats = warehouseStats[warehouse.code];
-              const totalAlerts = stats ? (stats.metrics.low_stock_alerts + stats.metrics.out_of_stock_alerts) : 0;
+              const totalAlerts = stats
+                ? stats.metrics.low_stock_alerts +
+                  stats.metrics.out_of_stock_alerts
+                : 0;
 
               return (
-                <Card 
-                  key={warehouse.id} 
+                <Card
+                  key={warehouse.id}
                   className="hover:shadow-lg transition-shadow relative group bg-gradient-to-br from-white to-blue-50 border-blue-100"
                 >
                   {/* Action buttons */}
@@ -319,26 +345,33 @@ const WarehouseSelection = () => {
                     {/* Basic Info */}
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600">
-                        <strong>Code:</strong> {warehouse.code}
+                        <strong>Код:</strong> {warehouse.code}
                       </p>
                       <p className="text-sm text-gray-600">
-                        <strong>Location:</strong> {warehouse.location || "Not specified"}
+                        <strong>Местоположение:</strong>{" "}
+                        {warehouse.location || "Не указано"}
                       </p>
                     </div>
 
                     {/* Warehouse Layout */}
                     <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg p-3">
                       <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">{warehouse.zoneMaxSize}</div>
-                        <div>Zones</div>
+                        <div className="font-bold text-blue-700 text-lg">
+                          {warehouse.zoneMaxSize}
+                        </div>
+                        <div>Зоны</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">{warehouse.rowMaxSize}</div>
-                        <div>Rows</div>
+                        <div className="font-bold text-blue-700 text-lg">
+                          {warehouse.rowMaxSize}
+                        </div>
+                        <div>Ряды</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">{warehouse.shelfMaxSize}</div>
-                        <div>Shelves</div>
+                        <div className="font-bold text-blue-700 text-lg">
+                          {warehouse.shelfMaxSize}
+                        </div>
+                        <div>Полки</div>
                       </div>
                     </div>
 
@@ -348,25 +381,36 @@ const WarehouseSelection = () => {
                         <div className="grid grid-cols-2 gap-3 text-xs">
                           <div className="flex items-center gap-1">
                             <Bot className="h-3 w-3 text-blue-500" />
-                            <span>Robots:</span>
-                            <span className="font-semibold">{stats.metrics.total_robots}</span>
+                            <span>Роботы:</span>
+                            <span className="font-semibold">
+                              {stats.metrics.total_robots}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Activity className="h-3 w-3 text-green-500" />
-                            <span>Active:</span>
-                            <span className="font-semibold">{stats.metrics.active_robots}</span>
+                            <span>Активные:</span>
+                            <span className="font-semibold">
+                              {stats.metrics.active_robots}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Battery className="h-3 w-3 text-yellow-500" />
-                            <span>Battery:</span>
+                            <span>Батарея:</span>
                             <span className="font-semibold">
-                              {stats.metrics.battery_levels ? Math.round(stats.metrics.battery_levels.average) : 0}%
+                              {stats.metrics.battery_levels
+                                ? Math.round(
+                                    stats.metrics.battery_levels.average,
+                                  )
+                                : 0}
+                              %
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Package className="h-3 w-3 text-purple-500" />
-                            <span>Scans:</span>
-                            <span className="font-semibold">{stats.metrics.total_scans_today}</span>
+                            <span>Сканирования:</span>
+                            <span className="font-semibold">
+                              {stats.metrics.total_scans_today}
+                            </span>
                           </div>
                         </div>
 
@@ -374,32 +418,53 @@ const WarehouseSelection = () => {
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="space-y-1">
                             <div className="flex justify-between">
-                              <span>Capacity:</span>
-                              <span className={`font-semibold ${getCapacityColor(stats.metrics.total_capacity_used)}`}>
+                              <span>Заполненность:</span>
+                              <span
+                                className={`font-semibold ${getCapacityColor(stats.metrics.total_capacity_used)}`}
+                              >
                                 {stats.metrics.total_capacity_used}
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div 
+                              <div
                                 className={`h-1.5 rounded-full ${
-                                  parseInt(stats.metrics.total_capacity_used.replace('%', '')) >= 80 ? 'bg-red-500' :
-                                  parseInt(stats.metrics.total_capacity_used.replace('%', '')) >= 60 ? 'bg-yellow-500' : 'bg-green-500'
+                                  parseInt(
+                                    stats.metrics.total_capacity_used.replace(
+                                      "%",
+                                      "",
+                                    ),
+                                  ) >= 80
+                                    ? "bg-red-500"
+                                    : parseInt(
+                                          stats.metrics.total_capacity_used.replace(
+                                            "%",
+                                            "",
+                                          ),
+                                        ) >= 60
+                                      ? "bg-yellow-500"
+                                      : "bg-green-500"
                                 }`}
-                                style={{ width: stats.metrics.total_capacity_used }}
+                                style={{
+                                  width: stats.metrics.total_capacity_used,
+                                }}
                               />
                             </div>
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between">
-                              <span>Alerts:</span>
-                              <span className={`font-semibold ${getAlertColor(totalAlerts)}`}>
+                              <span>Оповещения:</span>
+                              <span
+                                className={`font-semibold ${getAlertColor(totalAlerts)}`}
+                              >
                                 {totalAlerts}
                               </span>
                             </div>
                             {totalAlerts > 0 && (
                               <div className="flex items-center gap-1 text-red-500">
                                 <AlertTriangle className="h-3 w-3" />
-                                <span className="text-xs">Attention needed</span>
+                                <span className="text-xs">
+                                  Требуется внимание
+                                </span>
                               </div>
                             )}
                           </div>
@@ -409,15 +474,15 @@ const WarehouseSelection = () => {
 
                     {!stats && (
                       <div className="text-center py-2 text-gray-500 text-xs">
-                        Loading statistics...
+                        Загрузка статистики...
                       </div>
                     )}
 
-                    <Button 
+                    <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={() => handleWarehouseSelect(warehouse.code)}
                     >
-                      Enter Warehouse
+                      Войти на склад
                     </Button>
                   </CardContent>
                 </Card>
@@ -429,14 +494,14 @@ const WarehouseSelection = () => {
             <div className="text-center py-12">
               <Warehouse className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                No warehouses found
+                Склады не найдены
               </h3>
               <p className="text-gray-500 mb-6">
-                Get started by creating your first warehouse
+                Начните работу, создав свой первый склад
               </p>
               <Button onClick={() => setCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create First Warehouse
+                Создать первый склад
               </Button>
             </div>
           )}
@@ -466,10 +531,10 @@ const WarehouseSelection = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
-        title="Delete Warehouse"
-        description={`Are you sure you want to delete warehouse "${selectedWarehouse?.name}" (${selectedWarehouse?.code})? This action cannot be undone and all data associated with this warehouse will be permanently removed.`}
-        confirmText="Delete Warehouse"
-        cancelText="Cancel"
+        title="Удалить склад"
+        description={`Вы уверены, что хотите удалить склад "${selectedWarehouse?.name}" (${selectedWarehouse?.code})? Это действие нельзя отменить, и все данные, связанные с этим складом, будут безвозвратно удалены.`}
+        confirmText="Удалить склад"
+        cancelText="Отмена"
         variant="destructive"
         loading={deleting}
       />

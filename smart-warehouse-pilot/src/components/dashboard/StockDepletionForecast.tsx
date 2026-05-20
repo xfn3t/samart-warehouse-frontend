@@ -29,18 +29,18 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
     setLoading(true);
     try {
       const response = await fetch(`/api/${warehouseCode}/predict/criticality`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
         throw new Error("Empty response from server");
       }
-      
+
       const result = JSON.parse(text);
-      
+
       if (result.status === "ok") {
         // Берем только критические и средние прогнозы
         const criticalAndMediumPredictions = [
@@ -49,13 +49,13 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
         ];
         setPredictions(criticalAndMediumPredictions);
         setLastUpdated(Date.now());
-        toast.success(`Loaded ${criticalAndMediumPredictions.length} critical & medium predictions`);
+        toast.success(`Загружено ${criticalAndMediumPredictions.length} критических и средних прогнозов`);
       } else {
-        toast.error(result.message || "Failed to load predictions");
+        toast.error(result.message || "Не удалось загрузить прогнозы");
       }
     } catch (error) {
       console.error("Failed to fetch predictions:", error);
-      toast.error("Failed to load predictions from server");
+      toast.error("Не удалось загрузить прогнозы с сервера");
     } finally {
       setLoading(false);
     }
@@ -69,14 +69,14 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
 
   // Обработчик обновления данных
   const handleRefresh = useCallback(() => {
-    toast.info("Updating depletion forecast...");
+    toast.info("Обновление прогноза исчерпания...");
     fetchCriticalAndMediumPredictions();
   }, [fetchCriticalAndMediumPredictions]);
 
   const getDepletionDate = (daysUntilStockout: number) => {
-    if (daysUntilStockout <= 0) return "Now";
-    if (daysUntilStockout > 365) return "More than 1 year";
-    
+    if (daysUntilStockout <= 0) return "Сейчас";
+    if (daysUntilStockout > 365) return "Более 1 года";
+
     const date = new Date();
     date.setDate(date.getDate() + Math.round(daysUntilStockout));
     return date.toLocaleDateString("ru-RU");
@@ -104,7 +104,7 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
     // Сначала по критичности
     if (a.critical_level === "CRITICAL" && b.critical_level !== "CRITICAL") return -1;
     if (a.critical_level !== "CRITICAL" && b.critical_level === "CRITICAL") return 1;
-    
+
     // Потом по дням до истощения
     return a.days_until_stockout - b.days_until_stockout;
   });
@@ -115,7 +115,7 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Stock Depletion Forecast - {warehouseCode}
+            Прогноз исчерпания запасов - {warehouseCode}
           </CardTitle>
           <Button
             variant="ghost"
@@ -126,30 +126,30 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        
+
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-4 text-sm">
             <span className="text-muted-foreground">
-              Last updated: {new Date(lastUpdated).toLocaleTimeString("ru-RU")}
+              Обновлено: {new Date(lastUpdated).toLocaleTimeString("ru-RU")}
             </span>
             <span className="text-muted-foreground">
-              {sortedPredictions.length} items at risk
+              {sortedPredictions.length} позиций под угрозой
             </span>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-3">
         {loading ? (
           <div className="text-center py-8">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Loading depletion forecast...</p>
+            <p className="text-sm text-muted-foreground">Загрузка прогноза исчерпания...</p>
           </div>
         ) : sortedPredictions.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              No critical or medium risk items
+              Нет позиций с критическим или средним риском
             </p>
           </div>
         ) : (
@@ -166,44 +166,44 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
                     <div className="flex-1">
                       <p className="font-medium text-sm">{prediction.sku}</p>
                       <p className="text-xs text-muted-foreground">
-                        {prediction.product_name || "Product"}
+                        {prediction.product_name || "Товар"}
                       </p>
                     </div>
                   </div>
                   <div className={`text-right ${urgencyColor}`}>
                     <span className="text-sm font-semibold">
-                      {daysLeft <= 0 
-                        ? "OUT OF STOCK" 
-                        : `${Math.round(daysLeft)} days`
+                      {daysLeft <= 0
+                        ? "НЕТ В НАЛИЧИИ"
+                        : `${Math.round(daysLeft)} дн.`
                       }
                     </span>
-                    <p className="text-xs opacity-75">until stockout</p>
+                    <p className="text-xs opacity-75">до исчерпания</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
-                    <p className="text-muted-foreground">Depletes</p>
+                    <p className="text-muted-foreground">Исчерпание</p>
                     <p className="font-semibold">{depletionDate}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Rec. order</p>
+                    <p className="text-muted-foreground">Рек. заказ</p>
                     <p className="font-semibold">
                       {Math.round(prediction.recommended_order)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Confidence</p>
+                    <p className="text-muted-foreground">Уверенность</p>
                     <p className="font-semibold">
                       {Math.round(prediction.confidence_score * 100)}%
                     </p>
                   </div>
                 </div>
-                
+
                 {prediction.last_updated && (
                   <div className="mt-2 pt-2 border-t border-opacity-20">
                     <p className="text-xs opacity-60">
-                      Updated: {new Date(prediction.last_updated).toLocaleTimeString("ru-RU")}
+                      Обновлено: {new Date(prediction.last_updated).toLocaleTimeString("ru-RU")}
                     </p>
                   </div>
                 )}
@@ -211,22 +211,22 @@ const StockDepletionForecast = ({ warehouseCode }: StockDepletionForecastProps) 
             );
           })
         )}
-        
+
         {/* Статистика по уровням критичности */}
         {sortedPredictions.length > 0 && (
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">
-                Showing: {sortedPredictions.length} items
+                Показано: {sortedPredictions.length} позиций
               </span>
               <div className="flex gap-4">
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  CRITICAL: {sortedPredictions.filter(p => p.critical_level === "CRITICAL").length}
+                  КРИТИЧЕСКИЕ: {sortedPredictions.filter(p => p.critical_level === "CRITICAL").length}
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                  MEDIUM: {sortedPredictions.filter(p => p.critical_level === "MEDIUM").length}
+                  СРЕДНИЕ: {sortedPredictions.filter(p => p.critical_level === "MEDIUM").length}
                 </span>
               </div>
             </div>
