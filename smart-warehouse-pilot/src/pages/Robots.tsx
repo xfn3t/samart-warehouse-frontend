@@ -1,8 +1,9 @@
 ﻿import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, LogOut, Warehouse, RefreshCw, Edit, Trash2 } from "lucide-react";
+import { Bot, Plus, LogOut, Warehouse, RefreshCw, Edit, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import CreateRobotModal from "@/components/CreateRobotModal";
 import EditRobotModal from "@/components/EditRobotModal";

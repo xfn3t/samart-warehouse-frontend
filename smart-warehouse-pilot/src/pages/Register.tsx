@@ -10,14 +10,14 @@ const Register = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: ""
+    name: "",
   });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -26,21 +26,21 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, role: "ADMIN" }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        throw new Error(errorData.message || "Registration failed");
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem("token", data.accessToken);
       toast.success("Регистрация успешна");
       navigate("/warehouses");
     } catch (error: any) {
@@ -56,7 +56,9 @@ const Register = () => {
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">Создать учетную запись</h1>
-            <p className="text-gray-600">Присоединяйтесь к системе Умный Склад</p>
+            <p className="text-gray-600">
+              Присоединяйтесь к системе Умный Склад
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -108,7 +110,10 @@ const Register = () => {
           <div className="text-center">
             <p className="text-gray-600">
               Уже есть учетная запись?{" "}
-              <Link to="/login" className="text-blue-500 hover:text-blue-700 underline">
+              <Link
+                to="/login"
+                className="text-blue-500 hover:text-blue-700 underline"
+              >
                 Войти
               </Link>
             </p>

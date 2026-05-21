@@ -1,8 +1,10 @@
 ﻿import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Users,
   Warehouse,
   LogOut,
   Plus,
@@ -19,6 +21,11 @@ import CreateWarehouseModal from "@/components/CreateWarehouseModal";
 import EditWarehouseModal from "@/components/EditWarehouseModal";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 
+interface ExcludedCell {
+  zone: number;
+  row: number;
+}
+
 interface WarehouseDTO {
   id: number;
   code: string;
@@ -27,6 +34,7 @@ interface WarehouseDTO {
   zoneMaxSize: number;
   rowMaxSize: number;
   shelfMaxSize: number;
+  excludedCells: ExcludedCell[];
 }
 
 interface WarehouseStatsDTO {
@@ -52,6 +60,7 @@ interface WarehouseStatsDTO {
 
 const WarehouseSelection = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [warehouses, setWarehouses] = useState<WarehouseDTO[]>([]);
   const [warehouseStats, setWarehouseStats] = useState<
     Record<string, WarehouseStatsDTO>
@@ -267,6 +276,16 @@ const WarehouseSelection = () => {
               <Bot className="mr-2 h-4 w-4" />
               Роботы
             </Button>
+            {isAdmin && (
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/users")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Пользователи
+            </Button>
+            )}
           </div>
         </div>
 
@@ -279,14 +298,17 @@ const WarehouseSelection = () => {
                 Управляйте расположением складов и отслеживайте их состояние
               </p>
             </div>
+            {isAdmin && (
             <Button onClick={() => setCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Создать склад
             </Button>
+          )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {/* Add Warehouse Card */}
+            {isAdmin && (
             <Card
               className="cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors bg-gradient-to-br from-gray-50 to-gray-100"
               onClick={() => setCreateModalOpen(true)}
@@ -301,6 +323,7 @@ const WarehouseSelection = () => {
                 </p>
               </CardContent>
             </Card>
+            )}
 
             {/* Existing Warehouses */}
             {warehouses.map((warehouse) => {
@@ -316,6 +339,7 @@ const WarehouseSelection = () => {
                   className="hover:shadow-lg transition-shadow relative group bg-gradient-to-br from-white to-blue-50 border-blue-100"
                 >
                   {/* Action buttons */}
+                  {isAdmin && (
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
@@ -334,6 +358,7 @@ const WarehouseSelection = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  )}
 
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-lg">
@@ -354,24 +379,58 @@ const WarehouseSelection = () => {
                     </div>
 
                     {/* Warehouse Layout */}
-                    <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 bg-blue-50 rounded-lg p-3">
-                      <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">
-                          {warehouse.zoneMaxSize}
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-3">
+                      <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                        <div className="text-center">
+                          <div className="font-bold text-blue-700 text-lg">
+                            {warehouse.zoneMaxSize}
+                          </div>
+                          <div>Зоны</div>
                         </div>
-                        <div>Зоны</div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-700 text-lg">
+                            {warehouse.rowMaxSize}
+                          </div>
+                          <div>Ряды</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-700 text-lg">
+                            {warehouse.shelfMaxSize}
+                          </div>
+                          <div>Полки</div>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">
-                          {warehouse.rowMaxSize}
+
+                      {/* Mini schematic */}
+                      <div className="flex justify-center">
+                        <div
+                          className="grid gap-[1px]"
+                          style={{
+                            gridTemplateColumns: `repeat(${warehouse.zoneMaxSize}, 10px)`,
+                            gridTemplateRows: `repeat(${warehouse.rowMaxSize}, 10px)`,
+                          }}
+                        >
+                          {Array.from({ length: warehouse.rowMaxSize }).flatMap(
+                            (_, ri) =>
+                              Array.from({ length: warehouse.zoneMaxSize }).map(
+                                (_, zi) => {
+                                  const isExcluded =
+                                    warehouse.excludedCells?.some(
+                                      (c: ExcludedCell) =>
+                                        c.zone === zi + 1 && c.row === ri + 1,
+                                    );
+                                  if (isExcluded)
+                                    return <div key={`${zi + 1}-${ri + 1}`} />;
+                                  return (
+                                    <div
+                                      key={`${zi + 1}-${ri + 1}`}
+                                      className="bg-blue-200 rounded-sm"
+                                    />
+                                  );
+                                },
+                              ),
+                          )}
                         </div>
-                        <div>Ряды</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-blue-700 text-lg">
-                          {warehouse.shelfMaxSize}
-                        </div>
-                        <div>Полки</div>
                       </div>
                     </div>
 

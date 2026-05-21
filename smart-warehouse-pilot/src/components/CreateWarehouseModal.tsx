@@ -1,15 +1,26 @@
 ﻿import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Warehouse } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface CreateWarehouseModalProps {
   open: boolean;
   onClose: () => void;
   onWarehouseCreated: () => void;
+}
+
+interface ExcludedCell {
+  zone: number;
+  row: number;
 }
 
 interface WarehouseFormData {
@@ -19,31 +30,77 @@ interface WarehouseFormData {
   rowMaxSize: number;
   shelfMaxSize: number;
   location: string;
+  excludedCells: ExcludedCell[];
 }
 
-const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWarehouseModalProps) => {
+const CreateWarehouseModal = ({
+  open,
+  onClose,
+  onWarehouseCreated,
+}: CreateWarehouseModalProps) => {
   const [formData, setFormData] = useState<WarehouseFormData>({
     code: "",
     name: "",
     zoneMaxSize: 10,
     rowMaxSize: 10,
     shelfMaxSize: 5,
-    location: ""
+    location: "",
+    excludedCells: [],
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const excludedSet = new Set(
+    formData.excludedCells.map((c) => `${c.zone}-${c.row}`),
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name.includes("MaxSize") ? parseInt(value) || 0 : value
-    }));
+    const newValue = name.includes("MaxSize") ? parseInt(value) || 0 : value;
 
-    // Clear error when user starts typing
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: newValue };
+
+      // When dimensions change, remove excludedCells that are out of bounds
+      if (name === "zoneMaxSize" || name === "rowMaxSize") {
+        const zMax =
+          name === "zoneMaxSize" ? (newValue as number) : prev.zoneMaxSize;
+        const rMax =
+          name === "rowMaxSize" ? (newValue as number) : prev.rowMaxSize;
+        updated.excludedCells = prev.excludedCells.filter(
+          (c) => c.zone <= zMax && c.row <= rMax,
+        );
+      }
+
+      return updated;
+    });
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleToggleCell = (zone: number, row: number) => {
+    setFormData((prev) => {
+      const key = `${zone}-${row}`;
+      const isExcluded = prev.excludedCells.some(
+        (c) => c.zone === zone && c.row === row,
+      );
+
+      if (isExcluded) {
+        return {
+          ...prev,
+          excludedCells: prev.excludedCells.filter(
+            (c) => !(c.zone === zone && c.row === row),
+          ),
+        };
+      } else {
+        return {
+          ...prev,
+          excludedCells: [...prev.excludedCells, { zone, row }],
+        };
+      }
+    });
   };
 
   const validateForm = (): boolean => {
@@ -92,14 +149,27 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/warehouse', {
-        method: 'POST',
+      const token = localStorage.getItem("token");
+      const payload = {
+        code: formData.code,
+        name: formData.name,
+        zoneMaxSize: formData.zoneMaxSize,
+        rowMaxSize: formData.rowMaxSize,
+        shelfMaxSize: formData.shelfMaxSize,
+        location: formData.location || undefined,
+        excludedCells:
+          formData.excludedCells.length > 0
+            ? formData.excludedCells
+            : undefined,
+      };
+
+      const response = await fetch("http://localhost:8080/api/warehouse", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.status === 201) {
@@ -111,7 +181,6 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
         const errorData = await response.json();
         const errorMessage = errorData.message || "Не удалось создать склад";
 
-        // Set specific field errors if available
         if (errorData.errors) {
           const fieldErrors: Record<string, string> = {};
           errorData.errors.forEach((error: any) => {
@@ -125,7 +194,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error: any) {
-      console.error('Failed to create warehouse:', error);
+      console.error("Failed to create warehouse:", error);
       toast.error(error.message || "Не удалось создать склад");
     } finally {
       setLoading(false);
@@ -139,7 +208,8 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
       zoneMaxSize: 10,
       rowMaxSize: 10,
       shelfMaxSize: 5,
-      location: ""
+      location: "",
+      excludedCells: [],
     });
     setErrors({});
   };
@@ -149,9 +219,13 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
     onClose();
   };
 
+  const totalCells = formData.zoneMaxSize * formData.rowMaxSize;
+  const excludedCount = formData.excludedCells.length;
+  const activeCells = totalCells - excludedCount;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Warehouse className="h-5 w-5" />
@@ -160,6 +234,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="code">Код склада *</Label>
@@ -247,7 +322,9 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
                 disabled={loading}
               />
               {errors.shelfMaxSize && (
-                <p className="text-sm text-destructive">{errors.shelfMaxSize}</p>
+                <p className="text-sm text-destructive">
+                  {errors.shelfMaxSize}
+                </p>
               )}
               <p className="text-xs text-muted-foreground">Полок в ряду</p>
             </div>
@@ -272,6 +349,112 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
             </p>
           </div>
 
+          {/* Matrix for excluded cells */}
+          <div className="space-y-3 border rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Схема склада (зоны × ряды)</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Нажмите на ячейку, чтобы исключить её из склада. Исключённые
+                  ячейки не будут созданы.
+                </p>
+              </div>
+              <div className="text-xs text-muted-foreground text-right">
+                <div>
+                  Всего ячеек:{" "}
+                  <span className="font-semibold">{totalCells}</span>
+                </div>
+                <div>
+                  Активных:{" "}
+                  <span className="font-semibold text-green-600">
+                    {activeCells}
+                  </span>
+                </div>
+                <div>
+                  Исключено:{" "}
+                  <span className="font-semibold text-red-500">
+                    {excludedCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Column headers (Zones) */}
+            <div className="overflow-auto max-h-[400px] border rounded">
+              <table className="border-collapse w-full">
+                <thead>
+                  <tr>
+                    <th className="sticky top-0 bg-muted p-2 text-xs text-muted-foreground border-b border-r w-12 z-10">
+                      Ряд↓ / Зона→
+                    </th>
+                    {Array.from({ length: formData.zoneMaxSize }).map(
+                      (_, zi) => (
+                        <th
+                          key={`hdr-z${zi + 1}`}
+                          className="sticky top-0 bg-muted p-1 text-xs font-semibold border-b z-10"
+                        >
+                          Зона {zi + 1}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: formData.rowMaxSize }).map((_, ri) => (
+                    <tr key={`row-${ri + 1}`}>
+                      <td className="bg-muted p-1 text-xs font-semibold text-center border-r">
+                        Ряд {ri + 1}
+                      </td>
+                      {Array.from({ length: formData.zoneMaxSize }).map(
+                        (_, zi) => {
+                          const zone = zi + 1;
+                          const row = ri + 1;
+                          const isExcluded = excludedSet.has(`${zone}-${row}`);
+
+                          return (
+                            <td key={`cell-${zone}-${row}`} className="p-0">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCell(zone, row)}
+                                disabled={loading}
+                                className={cn(
+                                  "w-full h-8 text-[10px] transition-colors border border-gray-100",
+                                  "hover:ring-2 hover:ring-primary/50",
+                                  isExcluded
+                                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                    : "bg-green-50 text-green-700 hover:bg-green-100",
+                                )}
+                                title={
+                                  isExcluded
+                                    ? `Исключено: Зона ${zone}, Ряд ${row}`
+                                    : `Активно: Зона ${zone}, Ряд ${row}`
+                                }
+                              >
+                                {isExcluded ? "✕" : `${zone}-${row}`}
+                              </button>
+                            </td>
+                          );
+                        },
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-6 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-4 bg-green-50 border border-gray-100 rounded" />
+                <span>Активная ячейка</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-4 bg-red-100 border border-gray-100 rounded" />
+                <span>Исключённая ячейка</span>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"
@@ -281,10 +464,7 @@ const CreateWarehouseModal = ({ open, onClose, onWarehouseCreated }: CreateWareh
             >
               Отмена
             </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-            >
+            <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

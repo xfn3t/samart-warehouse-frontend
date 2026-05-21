@@ -1,8 +1,21 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, RotateCcw, Info, RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Info,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { apiClient } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -10,6 +23,11 @@ import { toast } from "sonner";
 
 interface WarehouseMapProps {
   warehouseCode: string;
+}
+
+interface ExcludedCell {
+  zone: number;
+  row: number;
 }
 
 interface Warehouse {
@@ -20,6 +38,7 @@ interface Warehouse {
   rowMaxSize: number;
   shelfMaxSize: number;
   location: string;
+  excludedCells: ExcludedCell[];
 }
 
 interface Location {
@@ -60,7 +79,10 @@ interface WarehouseRobotsDTO {
 
 const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
   const [zoom, setZoom] = useState(1);
-  const [hoveredCell, setHoveredCell] = useState<{zone: number, row: number} | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<{
+    zone: number;
+    row: number;
+  } | null>(null);
   const [warehouse, setWarehouse] = useState<Warehouse | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [robots, setRobots] = useState<Robot[]>([]);
@@ -72,20 +94,22 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
     onLocationUpdate: (data: any) => {
       if (data.locations) {
         setLocations(data.locations);
-        toast.info('Местоположения обновлены в реальном времени');
+        toast.info("Местоположения обновлены в реальном времени");
       }
     },
     onWarehouseRobotsUpdate: (data: any) => {
       if (data.robots) {
         setRobots(data.robots);
-        toast.info('Позиции роботов обновлены');
+        toast.info("Позиции роботов обновлены");
       }
     },
     onRobotUpdate: (data: any) => {
       // Update specific robot position
-      setRobots(prev => {
+      setRobots((prev) => {
         const updated = [...prev];
-        const existingIndex = updated.findIndex(r => r.robot_id === data.robot_id);
+        const existingIndex = updated.findIndex(
+          (r) => r.robot_id === data.robot_id,
+        );
 
         if (existingIndex >= 0) {
           updated[existingIndex] = {
@@ -95,23 +119,23 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
             shelf: data.shelf,
             battery_level: data.battery_level,
             status: data.status,
-            last_update: data.timestamp
+            last_update: data.timestamp,
           };
         } else {
           updated.push({
             robot_id: data.robot_id,
-            status: data.status || 'WORKING',
+            status: data.status || "WORKING",
             battery_level: data.battery_level,
             zone: data.zone,
             row: data.row,
             shelf: data.shelf,
-            last_update: data.timestamp
+            last_update: data.timestamp,
           });
         }
 
         return updated;
       });
-    }
+    },
   });
 
   useEffect(() => {
@@ -123,15 +147,17 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       setLoading(true);
 
       // Get warehouse data
-      const warehouses = await apiClient.get('/warehouse');
-      const currentWarehouse = warehouses.find((w: Warehouse) => w.code === warehouseCode);
+      const warehouses = await apiClient.get("/warehouse");
+      const currentWarehouse = warehouses.find(
+        (w: Warehouse) => w.code === warehouseCode,
+      );
       setWarehouse(currentWarehouse);
 
       if (currentWarehouse) {
         await fetchRealData(currentWarehouse);
       }
     } catch (error) {
-      console.error('Failed to fetch warehouse data:', error);
+      console.error("Failed to fetch warehouse data:", error);
       toast.error("Не удалось загрузить данные карты склада");
     } finally {
       setLoading(false);
@@ -143,7 +169,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       // Load initial data via REST API
       const [locationsResponse, robotsResponse] = await Promise.all([
         apiClient.get(`/dashboard/warehouses/${warehouseCode}/locations`),
-        apiClient.get(`/dashboard/warehouses/${warehouseCode}/robots`)
+        apiClient.get(`/dashboard/warehouses/${warehouseCode}/robots`),
       ]);
 
       const locationsData = locationsResponse as WarehouseLocationsDTO;
@@ -152,7 +178,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
       setLocations(locationsData.locations || []);
       setRobots(robotsData.robots || []);
     } catch (error) {
-      console.error('Failed to fetch real data:', error);
+      console.error("Failed to fetch real data:", error);
       toast.error("Не удалось загрузить данные о местоположениях и роботах");
     }
   };
@@ -213,31 +239,39 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
     const mod10 = n % 10;
     const mod100 = n % 100;
     if (mod10 === 1 && mod100 !== 11) return `${n} ${one}`;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} ${few}`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14))
+      return `${n} ${few}`;
     return `${n} ${many}`;
   };
 
   const formatLastScan = (lastScan: string) => {
+    if (!lastScan) return "Нет данных";
     const date = new Date(lastScan);
+    if (isNaN(date.getTime())) return "Нет данных";
     const now = new Date();
-    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    const diffHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+    );
 
+    if (diffHours < 0) return "Только что";
     if (diffHours < 1) return "Менее 1 часа назад";
-    if (diffHours < 24) return `${russianPlural(diffHours, 'час', 'часа', 'часов')} назад`;
+    if (diffHours < 24)
+      return `${russianPlural(diffHours, "час", "часа", "часов")} назад`;
 
     const diffDays = Math.floor(diffHours / 24);
-    return `${russianPlural(diffDays, 'день', 'дня', 'дней')} назад`;
+    return `${russianPlural(diffDays, "день", "дня", "дней")} назад`;
   };
 
   const getLocationAt = (zone: number, row: number) => {
-    return locations.find(loc => loc.zone === zone && loc.row === row);
+    return locations.find((loc) => loc.zone === zone && loc.row === row);
   };
 
   const getRobotAt = (zone: number, row: number) => {
-    return robots.find(robot => robot.zone === zone && robot.row === row);
+    return robots.find((robot) => robot.zone === zone && robot.row === row);
   };
 
   const CELL_SIZE = 60;
+  const GAP = 4;
 
   if (loading) {
     return (
@@ -264,44 +298,55 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
     );
   }
 
+  const totalWidth = warehouse.zoneMaxSize * (CELL_SIZE + GAP) + GAP;
+
+  // Build excluded set for O(1) lookup
+  const excludedSet = new Set(
+    warehouse.excludedCells?.map((c) => `${c.zone}-${c.row}`) || [],
+  );
+
+  const AXIS_SIZE = 28; // space for zone/row labels
+  const totalWidthWithAxis = totalWidth + AXIS_SIZE;
+  const totalHeight = warehouse.rowMaxSize * (CELL_SIZE + GAP) + GAP;
+  const totalHeightWithAxis = totalHeight + AXIS_SIZE;
+
   return (
     <Card className="h-full">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <CardTitle>Карта склада - {warehouseCode}</CardTitle>
-            <Badge variant={isConnected ? "default" : "secondary"} className="flex items-center gap-1">
-              {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            <Badge
+              variant={isConnected ? "default" : "secondary"}
+              className="flex items-center gap-1"
+            >
+              {isConnected ? (
+                <Wifi className="h-3 w-3" />
+              ) : (
+                <WifiOff className="h-3 w-3" />
+              )}
               {isConnected ? "Онлайн" : "Офлайн"}
             </Badge>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-            >
+            <Button variant="outline" size="icon" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setZoom(prev => Math.min(prev + 0.1, 2))}
+              onClick={() => setZoom((prev) => Math.min(prev + 0.1, 2))}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.5))}
+              onClick={() => setZoom((prev) => Math.max(prev - 0.1, 0.5))}
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setZoom(1)}
-            >
+            <Button variant="outline" size="icon" onClick={() => setZoom(1)}>
               <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
@@ -311,109 +356,207 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
         <TooltipProvider>
           <div
             className="inline-block p-4"
-            style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
+            style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
           >
-            {/* Matrix Grid */}
-            <div className="grid gap-1" style={{
-              gridTemplateColumns: `repeat(${warehouse.zoneMaxSize}, ${CELL_SIZE}px)`,
-              gridTemplateRows: `repeat(${warehouse.rowMaxSize}, ${CELL_SIZE}px)`
-            }}>
-              {Array.from({ length: warehouse.rowMaxSize }).map((_, rowIdx) =>
-                Array.from({ length: warehouse.zoneMaxSize }).map((_, zoneIdx) => {
-                  const zone = zoneIdx + 1;
-                  const row = rowIdx + 1;
-                  const location = getLocationAt(zone, row);
-                  const robot = getRobotAt(zone, row);
+            {/* Matrix Grid using absolute positioning — excluded cells are empty space */}
+            <div
+              className="relative"
+              style={{
+                width: `${totalWidthWithAxis}px`,
+                height: `${totalHeightWithAxis}px`,
+              }}
+            >
+              {/* Column headers (Zone numbers) */}
+              {Array.from({ length: warehouse.zoneMaxSize }).map((_, zi) => {
+                const left = AXIS_SIZE + zi * (CELL_SIZE + GAP) + GAP;
+                return (
+                  <div
+                    key={`zone-hdr-${zi + 1}`}
+                    className="absolute text-[10px] font-semibold text-muted-foreground flex items-center justify-center"
+                    style={{
+                      left: `${left}px`,
+                      top: "2px",
+                      width: `${CELL_SIZE}px`,
+                      height: `${AXIS_SIZE - 4}px`,
+                    }}
+                  >
+                    З{zi + 1}
+                  </div>
+                );
+              })}
 
-                  return (
-                    <Tooltip key={`${zone}-${row}`}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={`border-2 rounded flex items-center justify-center relative transition-all ${getCellColor(location)}`}
-                          style={{ width: CELL_SIZE, height: CELL_SIZE }}
-                          onMouseEnter={() => setHoveredCell({zone, row})}
-                          onMouseLeave={() => setHoveredCell(null)}
-                        >
-                          <div className="text-xs text-center p-1">
-                            <div className="font-semibold">{zone}-{row}</div>
-                            {location && (
-                              <div className="text-[10px] opacity-75">
-                                {location.capacity_percent}%
-                              </div>
-                            )}
-                          </div>
+              {/* Row headers (Row numbers) */}
+              {Array.from({ length: warehouse.rowMaxSize }).map((_, ri) => {
+                const top = AXIS_SIZE + ri * (CELL_SIZE + GAP) + GAP;
+                return (
+                  <div
+                    key={`row-hdr-${ri + 1}`}
+                    className="absolute text-[10px] font-semibold text-muted-foreground flex items-center justify-center"
+                    style={{
+                      left: "2px",
+                      top: `${top}px`,
+                      width: `${AXIS_SIZE - 4}px`,
+                      height: `${CELL_SIZE}px`,
+                    }}
+                  >
+                    Р{ri + 1}
+                  </div>
+                );
+              })}
 
-                          {robot && (
+              {/* Cells */}
+              {Array.from({ length: warehouse.rowMaxSize }).flatMap(
+                (_, rowIdx) =>
+                  Array.from({ length: warehouse.zoneMaxSize }).map(
+                    (_, zoneIdx) => {
+                      const zone = zoneIdx + 1;
+                      const row = rowIdx + 1;
+                      const isExcluded = excludedSet.has(`${zone}-${row}`);
+
+                      // Excluded cells: render nothing (empty space)
+                      if (isExcluded) return null;
+
+                      const location = getLocationAt(zone, row);
+                      const robot = getRobotAt(zone, row);
+                      const left =
+                        AXIS_SIZE + zoneIdx * (CELL_SIZE + GAP) + GAP;
+                      const top = AXIS_SIZE + rowIdx * (CELL_SIZE + GAP) + GAP;
+
+                      return (
+                        <Tooltip key={`${zone}-${row}`}>
+                          <TooltipTrigger asChild>
                             <div
-                              className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getRobotColor(robot.status)} border-2 border-white`}
-                              title={`Робот ${robot.robot_id} (${getRobotStatusText(robot.status)})`}
-                            />
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="w-80">
-                        {location ? (
-                          <div className="space-y-2">
-                            <div className="font-semibold">Местоположение {zone}-{row}</div>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">Последнее сканирование:</span>
-                                <div className="font-medium">{formatLastScan(location.last_scan)}</div>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Всего товаров:</span>
-                                <div className="font-medium">{location.total_products}</div>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Заполненность:</span>
-                                <div className="font-medium">{location.capacity_percent}%</div>
-                              </div>
-                              {location.metrics && (
-                                <>
-                                  <div>
-                                    <span className="text-muted-foreground">Отсканировано сегодня:</span>
-                                    <div className="font-medium">{location.metrics.scanned_today}</div>
+                              className={`absolute border-2 rounded flex items-center justify-center transition-all ${getCellColor(location)}`}
+                              style={{
+                                width: `${CELL_SIZE}px`,
+                                height: `${CELL_SIZE}px`,
+                                left: `${left}px`,
+                                top: `${top}px`,
+                              }}
+                              onMouseEnter={() => setHoveredCell({ zone, row })}
+                              onMouseLeave={() => setHoveredCell(null)}
+                            >
+                              <div className="text-xs text-center p-1">
+                                <div className="font-semibold">
+                                  {zone}-{row}
+                                </div>
+                                {location && (
+                                  <div className="text-[10px] opacity-75">
+                                    {location.capacity_percent}%
                                   </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Низкий запас:</span>
-                                    <div className="font-medium text-yellow-600">{location.metrics.low_stock_items}</div>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Нет в наличии:</span>
-                                    <div className="font-medium text-red-600">{location.metrics.out_of_stock_items}</div>
-                                  </div>
-                                </>
+                                )}
+                              </div>
+
+                              {robot && (
+                                <div
+                                  className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getRobotColor(robot.status)} border-2 border-white`}
+                                  title={`Робот ${robot.robot_id} (${getRobotStatusText(robot.status)})`}
+                                />
                               )}
                             </div>
-                            {robot && (
-                              <div className="pt-2 border-t">
-                                <div className="font-semibold flex items-center gap-2">
-                                  <Info className="h-3 w-3" />
-                                  Робот {robot.robot_id}
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="w-80">
+                            {location ? (
+                              <div className="space-y-2">
+                                <div className="font-semibold">
+                                  Местоположение {zone}-{row}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                   <div>
-                                    <span className="text-muted-foreground">Статус:</span>
-                                    <div className="font-medium">{getRobotStatusText(robot.status)}</div>
+                                    <span className="text-muted-foreground">
+                                      Последнее сканирование:
+                                    </span>
+                                    <div className="font-medium">
+                                      {formatLastScan(location.last_scan)}
+                                    </div>
                                   </div>
                                   <div>
-                                    <span className="text-muted-foreground">Батарея:</span>
-                                    <div className="font-medium">{robot.battery_level}%</div>
+                                    <span className="text-muted-foreground">
+                                      Всего товаров:
+                                    </span>
+                                    <div className="font-medium">
+                                      {location.total_products}
+                                    </div>
                                   </div>
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Заполненность:
+                                    </span>
+                                    <div className="font-medium">
+                                      {location.capacity_percent}%
+                                    </div>
+                                  </div>
+                                  {location.metrics && (
+                                    <>
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Отсканировано сегодня:
+                                        </span>
+                                        <div className="font-medium">
+                                          {location.metrics.scanned_today}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Низкий запас:
+                                        </span>
+                                        <div className="font-medium text-yellow-600">
+                                          {location.metrics.low_stock_items}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Нет в наличии:
+                                        </span>
+                                        <div className="font-medium text-red-600">
+                                          {location.metrics.out_of_stock_items}
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                {robot && (
+                                  <div className="pt-2 border-t">
+                                    <div className="font-semibold flex items-center gap-2">
+                                      <Info className="h-3 w-3" />
+                                      Робот {robot.robot_id}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Статус:
+                                        </span>
+                                        <div className="font-medium">
+                                          {getRobotStatusText(robot.status)}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">
+                                          Батарея:
+                                        </span>
+                                        <div className="font-medium">
+                                          {robot.battery_level}%
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="font-semibold">
+                                  Местоположение {zone}-{row}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Нет данных сканирования
                                 </div>
                               </div>
                             )}
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="font-semibold">Местоположение {zone}-{row}</div>
-                            <div className="text-sm text-muted-foreground">Нет данных сканирования</div>
-                          </div>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    },
+                  ),
               )}
             </div>
 
@@ -441,6 +584,13 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                   <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
                   <span>Нет данных</span>
                 </div>
+                {(warehouse.excludedCells?.length || 0) > 0 && (
+                  <div className="flex items-center gap-2 col-span-2 mt-1 pt-2 border-t border-dashed">
+                    <span className="text-muted-foreground">
+                      Исключённых ячеек: {warehouse.excludedCells?.length || 0}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <p className="font-semibold mt-4 mb-3 text-sm">Статус робота:</p>
