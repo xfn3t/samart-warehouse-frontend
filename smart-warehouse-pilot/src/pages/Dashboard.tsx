@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import WarehouseMap from "@/components/dashboard/WarehouseMap";
 import RealTimeStats from "@/components/dashboard/RealTimeStats";
-import RecentScans from "@/components/dashboard/RecentScans";
 import AIPredictions from "@/components/dashboard/AIPredictions";
 
 const Dashboard = () => {
@@ -34,16 +33,13 @@ const Dashboard = () => {
             <WarehouseMap warehouseCode={warehouseCode} />
           </div>
 
-          {/* Right column: AIPredictions → RealTimeStats → RecentScans */}
+          {/* Right column: AIPredictions → RealTimeStats */}
           <div className="flex flex-col gap-3 min-h-0">
             <div className="flex-[1.4] min-h-0">
               <AIPredictions warehouseCode={warehouseCode} />
             </div>
-            <div className="flex-[1.1] min-h-0">
-              <RealTimeStats warehouseCode={warehouseCode} />
-            </div>
             <div className="flex-[1] min-h-0">
-              <RecentScans warehouseCode={warehouseCode} />
+              <RealTimeStats warehouseCode={warehouseCode} />
             </div>
           </div>
         </div>
