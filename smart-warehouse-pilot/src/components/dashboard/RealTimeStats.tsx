@@ -128,8 +128,7 @@ const RealTimeStats = ({ warehouseCode }: RealTimeStatsProps) => {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Статистика в реальном времени</h3>
         <Badge variant={isConnected ? "default" : "secondary"} className="flex items-center gap-1">
-          {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-          {isConnected ? "Онлайн" : "Офлайн"}
+          <>{isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />} {isConnected ? "Онлайн" : "Офлайн"}</>
         </Badge>
       </div>
 

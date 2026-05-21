@@ -72,7 +72,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
         return updated.slice(0, 100);
       });
     }
-  }, []);
+  }, [warehouseCode]);
 
   // WebSocket для реальных данных о сканированиях
   const { isConnected, connectionStatus } = useWebSocket({
@@ -255,8 +255,7 @@ const RecentScans = ({ warehouseCode }: RecentScansProps) => {
               variant={isConnected ? "default" : "secondary"}
               className="flex items-center gap-1 text-xs"
             >
-              {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              {isConnected ? "Онлайн" : "Офлайн"}
+              <>{isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />} {isConnected ? "Онлайн" : "Офлайн"}</>
             </Badge>
           </div>
           <Button

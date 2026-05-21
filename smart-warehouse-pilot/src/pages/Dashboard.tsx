@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import WarehouseMap from "@/components/dashboard/WarehouseMap";
 import RealTimeStats from "@/components/dashboard/RealTimeStats";
-import RecentScans from "@/components/dashboard/RecentScans";
 import AIPredictions from "@/components/dashboard/AIPredictions";
 
 const Dashboard = () => {
@@ -23,28 +22,25 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header warehouseCode={warehouseCode} />
       <Navigation warehouseCode={warehouseCode} />
 
-      <main className="p-6">
-        <div className="grid grid-cols-2 gap-6 h-[calc(100vh-180px)]">
-          <div className="row-span-3">
+      <main className="p-6 flex-1 min-h-0">
+        <div className="grid grid-cols-2 gap-6 h-full">
+          {/* Left column: Warehouse Map (full height) */}
+          <div className="min-h-0">
             <WarehouseMap warehouseCode={warehouseCode} />
           </div>
 
-          <div className="space-y-6">
-            <div className="h-[calc(33%-8px)]">
+          {/* Right column: AIPredictions → RealTimeStats */}
+          <div className="flex flex-col gap-3 min-h-0">
+            <div className="flex-[1.4] min-h-0">
+              <AIPredictions warehouseCode={warehouseCode} />
+            </div>
+            <div className="flex-[1] min-h-0">
               <RealTimeStats warehouseCode={warehouseCode} />
             </div>
-          </div>
-
-          <div className="h-[calc(33%-8px)]">
-            <RecentScans warehouseCode={warehouseCode} />
-          </div>
-
-          <div className="h-[calc(34%-8px)]">
-            <AIPredictions warehouseCode={warehouseCode} />
           </div>
         </div>
       </main>
