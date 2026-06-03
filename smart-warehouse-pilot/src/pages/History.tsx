@@ -61,8 +61,43 @@ const History = () => {
     toast.success(`Экспорт ${selected.length} записей в Excel`);
   };
 
-  const handleExportPDF = (selected: string[]) => {
-    toast.success(`Экспорт ${selected.length} записей в PDF`);
+  const handleExportPDF = async (selected: string[]) => {
+    try {
+      const token = localStorage.getItem("token");
+      let url: string;
+      const options: RequestInit = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      if (selected.length > 0) {
+        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf/by-skus`;
+        options.method = "POST";
+        (options.headers as Record<string,string>)["Content-Type"] = "application/json";
+        options.body = JSON.stringify(selected);
+      } else {
+        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf`;
+      }
+
+      const response = await fetch(url, options);
+      if (response.ok) {
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.pdf`;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
+        toast.success(
+          selected.length > 0
+            ? `PDF-отчёт по ${selected.length} товарам скачан`
+            : "Полный PDF-отчёт скачан"
+        );
+      } else {
+        toast.error("Не удалось сформировать отчёт");
+      }
+    } catch {
+      toast.error("Ошибка скачивания отчёта");
+    }
   };
 
   const handleShowChart = (selected: string[]) => {
@@ -134,7 +169,9 @@ const History = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Среднее время сканирования</p>
+                  <p className="text-sm text-muted-foreground">
+                    Среднее время сканирования
+                  </p>
                   <p className="text-2xl font-bold text-foreground">
                     {summary.avgZoneScanMinutes
                       ? `${Math.round(summary.avgZoneScanMinutes)} мин`
@@ -144,7 +181,9 @@ const History = () => {
               </div>
             ) : (
               <div className="text-center py-4">
-                <p className="text-muted-foreground">Не удалось загрузить сводку</p>
+                <p className="text-muted-foreground">
+                  Не удалось загрузить сводку
+                </p>
               </div>
             )}
           </CardContent>

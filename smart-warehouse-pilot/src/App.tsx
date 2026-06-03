@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import WarehouseSelection from "./pages/WarehouseSelection";
 import Robots from "./pages/Robots";
 import Users from "./pages/Users";
+import Reports from "./pages/Reports";
+import WarehouseReports from "./pages/WarehouseReports";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
@@ -17,6 +19,8 @@ const App = () => (
       <Route path="/warehouses" element={<WarehouseSelection />} />
       <Route path="/robots" element={<Robots />} />
       <Route path="/users" element={<Users />} />
+      <Route path="/reports" element={<Reports />} />
+      <Route path="/reports/:warehouseCode" element={<WarehouseReports />} />
       <Route path="/dashboard/:warehouseCode" element={<Dashboard />} />
       <Route path="/history/:warehouseCode" element={<History />} />
       <Route path="*" element={<NotFound />} />

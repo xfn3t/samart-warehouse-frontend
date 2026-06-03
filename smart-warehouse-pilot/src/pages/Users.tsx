@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import AppSidebar from "@/components/AppSidebar";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -268,34 +269,7 @@ const UsersPage = () => {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r min-h-[calc(100vh-65px)]">
-          <div className="p-4 space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/warehouses")}
-            >
-              <Warehouse className="mr-2 h-4 w-4" />
-              Склады
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/robots")}
-            >
-              <Bot className="mr-2 h-4 w-4" />
-              Роботы
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full justify-start"
-              onClick={() => navigate("/users")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Пользователи
-            </Button>
-          </div>
-        </div>
+        <AppSidebar />
 
         {/* Main Content */}
         <main className="flex-1 p-6">

@@ -36,7 +36,8 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
     setError(null);
     try {
       const data = await apiClient.get(`/${warehouseCode}/inventory/history/low-stock`);
-      setProducts(data);
+      const unique = data.filter((p,i,a) => a.findIndex(x => x.productCode === p.productCode) === i);
+      setProducts(unique);
 
       // Calculate total products needing replenishment
       const total = data.filter((product: Product) => product.quantity < product.minStock).length;

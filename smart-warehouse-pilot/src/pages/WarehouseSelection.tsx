@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import AppSidebar from "@/components/AppSidebar";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,7 +95,6 @@ const WarehouseSelection = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Убедимся, что данные имеют правильную структуру
         const validWarehouses = data.filter(
           (warehouse: any) =>
             warehouse &&
@@ -132,7 +132,6 @@ const WarehouseSelection = () => {
 
           if (response.ok) {
             const statsData = await response.json();
-            // Убедимся, что данные статистики имеют правильную структуру
             if (statsData && statsData.metrics) {
               stats[warehouse.code] = statsData;
             }
@@ -202,7 +201,7 @@ const WarehouseSelection = () => {
 
       if (response.ok) {
         toast.success("Склад успешно удалён!");
-        fetchWarehouses(); // Обновляем данные после удаления
+        fetchWarehouses();
         setDeleteDialogOpen(false);
         setSelectedWarehouse(null);
       } else {
@@ -245,336 +244,296 @@ const WarehouseSelection = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Управление складами</h1>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Выйти
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r min-h-screen">
-          <div className="p-4 space-y-2">
-            <Button
-              variant="secondary"
-              className="w-full justify-start"
-              onClick={() => navigate("/warehouses")}
-            >
-              <Warehouse className="mr-2 h-4 w-4" />
-              Склады
+    <>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b px-6 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-semibold">Управление складами</h1>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Выйти
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/robots")}
-            >
-              <Bot className="mr-2 h-4 w-4" />
-              Роботы
-            </Button>
-            {isAdmin && (
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/users")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Пользователи
-            </Button>
-            )}
           </div>
-        </div>
+        </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">Все склады</h2>
-              <p className="text-gray-600">
-                Управляйте расположением складов и отслеживайте их состояние
-              </p>
+        <div className="flex">
+          <AppSidebar />
+          <main className="flex-1 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Все склады</h2>
+                <p className="text-gray-600">
+                  Управляйте расположением складов и отслеживайте их состояние
+                </p>
+              </div>
+              {isAdmin && (
+                <Button onClick={() => setCreateModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Создать склад
+                </Button>
+              )}
             </div>
-            {isAdmin && (
-            <Button onClick={() => setCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Создать склад
-            </Button>
-          )}
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {/* Add Warehouse Card */}
-            {isAdmin && (
-            <Card
-              className="cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors bg-gradient-to-br from-gray-50 to-gray-100"
-              onClick={() => setCreateModalOpen(true)}
-            >
-              <CardContent className="flex flex-col items-center justify-center h-40 p-6">
-                <Plus className="h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-lg font-medium text-gray-600 text-center">
-                  Создать новый склад
-                </p>
-                <p className="text-sm text-gray-500 text-center mt-2">
-                  Добавить новое расположение склада
-                </p>
-              </CardContent>
-            </Card>
-            )}
-
-            {/* Existing Warehouses */}
-            {warehouses.map((warehouse) => {
-              const stats = warehouseStats[warehouse.code];
-              const totalAlerts = stats
-                ? stats.metrics.low_stock_alerts +
-                  stats.metrics.out_of_stock_alerts
-                : 0;
-
-              return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {isAdmin && (
                 <Card
-                  key={warehouse.id}
-                  className="hover:shadow-lg transition-shadow relative group bg-gradient-to-br from-white to-blue-50 border-blue-100"
+                  className="cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors bg-gradient-to-br from-gray-50 to-gray-100"
+                  onClick={() => setCreateModalOpen(true)}
                 >
-                  {/* Action buttons */}
-                  {isAdmin && (
-                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
-                      onClick={() => handleEditWarehouse(warehouse)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-red-50 hover:text-red-600"
-                      onClick={() => handleDeleteClick(warehouse)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  )}
+                  <CardContent className="flex flex-col items-center justify-center h-40 p-6">
+                    <Plus className="h-12 w-12 text-gray-400 mb-2" />
+                    <p className="text-lg font-medium text-gray-600 text-center">
+                      Создать новый склад
+                    </p>
+                    <p className="text-sm text-gray-500 text-center mt-2">
+                      Добавить новое расположение склада
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Warehouse className="h-5 w-5 text-blue-600" />
-                      {warehouse.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Basic Info */}
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">
-                        <strong>Код:</strong> {warehouse.code}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Местоположение:</strong>{" "}
-                        {warehouse.location || "Не указано"}
-                      </p>
-                    </div>
+              {warehouses.map((warehouse) => {
+                const stats = warehouseStats[warehouse.code];
+                const totalAlerts = stats
+                  ? stats.metrics.low_stock_alerts +
+                    stats.metrics.out_of_stock_alerts
+                  : 0;
 
-                    {/* Warehouse Layout */}
-                    <div className="bg-blue-50 rounded-lg p-3 space-y-3">
-                      <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                        <div className="text-center">
-                          <div className="font-bold text-blue-700 text-lg">
-                            {warehouse.zoneMaxSize}
-                          </div>
-                          <div>Зоны</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-700 text-lg">
-                            {warehouse.rowMaxSize}
-                          </div>
-                          <div>Ряды</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-700 text-lg">
-                            {warehouse.shelfMaxSize}
-                          </div>
-                          <div>Полки</div>
-                        </div>
-                      </div>
-
-                      {/* Mini schematic */}
-                      <div className="flex justify-center">
-                        <div
-                          className="grid gap-[1px]"
-                          style={{
-                            gridTemplateColumns: `repeat(${warehouse.zoneMaxSize}, 10px)`,
-                            gridTemplateRows: `repeat(${warehouse.rowMaxSize}, 10px)`,
-                          }}
+                return (
+                  <Card
+                    key={warehouse.id}
+                    className="hover:shadow-lg transition-shadow relative group bg-gradient-to-br from-white to-blue-50 border-blue-100"
+                  >
+                    {isAdmin && (
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
+                          onClick={() => handleEditWarehouse(warehouse)}
                         >
-                          {Array.from({ length: warehouse.rowMaxSize }).flatMap(
-                            (_, ri) =>
-                              Array.from({ length: warehouse.zoneMaxSize }).map(
-                                (_, zi) => {
-                                  const isExcluded =
-                                    warehouse.excludedCells?.some(
-                                      (c: ExcludedCell) =>
-                                        c.zone === zi + 1 && c.row === ri + 1,
-                                    );
-                                  if (isExcluded)
-                                    return <div key={`${zi + 1}-${ri + 1}`} />;
-                                  return (
-                                    <div
-                                      key={`${zi + 1}-${ri + 1}`}
-                                      className="bg-blue-200 rounded-sm"
-                                    />
-                                  );
-                                },
-                              ),
-                          )}
-                        </div>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeleteClick(warehouse)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Statistics */}
-                    {stats && (
-                      <div className="space-y-3 border-t pt-3">
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Bot className="h-3 w-3 text-blue-500" />
-                            <span>Роботы:</span>
-                            <span className="font-semibold">
-                              {stats.metrics.total_robots}
-                            </span>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Warehouse className="h-5 w-5 text-blue-600" />
+                        {warehouse.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          <strong>Код:</strong> {warehouse.code}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <strong>Местоположение:</strong>{" "}
+                          {warehouse.location || "Не указано"}
+                        </p>
+                      </div>
+
+                      <div className="bg-blue-50 rounded-lg p-3 space-y-3">
+                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                          <div className="text-center">
+                            <div className="font-bold text-blue-700 text-lg">
+                              {warehouse.zoneMaxSize}
+                            </div>
+                            <div>Зоны</div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Activity className="h-3 w-3 text-green-500" />
-                            <span>Активные:</span>
-                            <span className="font-semibold">
-                              {stats.metrics.active_robots}
-                            </span>
+                          <div className="text-center">
+                            <div className="font-bold text-blue-700 text-lg">
+                              {warehouse.rowMaxSize}
+                            </div>
+                            <div>Ряды</div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Battery className="h-3 w-3 text-yellow-500" />
-                            <span>Батарея:</span>
-                            <span className="font-semibold">
-                              {stats.metrics.battery_levels
-                                ? Math.round(
-                                    stats.metrics.battery_levels.average,
-                                  )
-                                : 0}
-                              %
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Package className="h-3 w-3 text-purple-500" />
-                            <span>Сканирования:</span>
-                            <span className="font-semibold">
-                              {stats.metrics.total_scans_today}
-                            </span>
+                          <div className="text-center">
+                            <div className="font-bold text-blue-700 text-lg">
+                              {warehouse.shelfMaxSize}
+                            </div>
+                            <div>Полки</div>
                           </div>
                         </div>
 
-                        {/* Capacity and Alerts */}
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span>Заполненность:</span>
-                              <span
-                                className={`font-semibold ${getCapacityColor(stats.metrics.total_capacity_used)}`}
-                              >
-                                {stats.metrics.total_capacity_used}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${
-                                  parseInt(
-                                    stats.metrics.total_capacity_used.replace(
-                                      "%",
-                                      "",
-                                    ),
-                                  ) >= 80
-                                    ? "bg-red-500"
-                                    : parseInt(
-                                          stats.metrics.total_capacity_used.replace(
-                                            "%",
-                                            "",
-                                          ),
-                                        ) >= 60
-                                      ? "bg-yellow-500"
-                                      : "bg-green-500"
-                                }`}
-                                style={{
-                                  width: stats.metrics.total_capacity_used,
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span>Оповещения:</span>
-                              <span
-                                className={`font-semibold ${getAlertColor(totalAlerts)}`}
-                              >
-                                {totalAlerts}
-                              </span>
-                            </div>
-                            {totalAlerts > 0 && (
-                              <div className="flex items-center gap-1 text-red-500">
-                                <AlertTriangle className="h-3 w-3" />
-                                <span className="text-xs">
-                                  Требуется внимание
-                                </span>
-                              </div>
+                        <div className="flex justify-center">
+                          <div
+                            className="grid gap-[1px]"
+                            style={{
+                              gridTemplateColumns: `repeat(${warehouse.zoneMaxSize}, 10px)`,
+                              gridTemplateRows: `repeat(${warehouse.rowMaxSize}, 10px)`,
+                            }}
+                          >
+                            {Array.from({ length: warehouse.rowMaxSize }).flatMap(
+                              (_, ri) =>
+                                Array.from({ length: warehouse.zoneMaxSize }).map(
+                                  (_, zi) => {
+                                    const isExcluded =
+                                      warehouse.excludedCells?.some(
+                                        (c: ExcludedCell) =>
+                                          c.zone === zi + 1 && c.row === ri + 1,
+                                      );
+                                    if (isExcluded)
+                                      return <div key={`${zi + 1}-${ri + 1}`} />;
+                                    return (
+                                      <div
+                                        key={`${zi + 1}-${ri + 1}`}
+                                        className="bg-blue-200 rounded-sm"
+                                      />
+                                    );
+                                  },
+                                ),
                             )}
                           </div>
                         </div>
                       </div>
-                    )}
 
-                    {!stats && (
-                      <div className="text-center py-2 text-gray-500 text-xs">
-                        Загрузка статистики...
-                      </div>
-                    )}
+                      {stats && (
+                        <div className="space-y-3 border-t pt-3">
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="flex items-center gap-1">
+                              <Bot className="h-3 w-3 text-blue-500" />
+                              <span>Роботы:</span>
+                              <span className="font-semibold">
+                                {stats.metrics.total_robots}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Activity className="h-3 w-3 text-green-500" />
+                              <span>Активные:</span>
+                              <span className="font-semibold">
+                                {stats.metrics.active_robots}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Battery className="h-3 w-3 text-yellow-500" />
+                              <span>Батарея:</span>
+                              <span className="font-semibold">
+                                {stats.metrics.battery_levels
+                                  ? Math.round(
+                                      stats.metrics.battery_levels.average,
+                                    )
+                                  : 0}
+                                %
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Package className="h-3 w-3 text-purple-500" />
+                              <span>Сканирования:</span>
+                              <span className="font-semibold">
+                                {stats.metrics.total_scans_today}
+                              </span>
+                            </div>
+                          </div>
 
-                    <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleWarehouseSelect(warehouse.code)}
-                    >
-                      Войти на склад
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="space-y-1">
+                              <div className="flex justify-between">
+                                <span>Заполненность:</span>
+                                <span
+                                  className={`font-semibold ${getCapacityColor(stats.metrics.total_capacity_used)}`}
+                                >
+                                  {stats.metrics.total_capacity_used}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full ${
+                                    parseInt(
+                                      stats.metrics.total_capacity_used.replace(
+                                        "%",
+                                        "",
+                                      ),
+                                    ) >= 80
+                                      ? "bg-red-500"
+                                      : parseInt(
+                                            stats.metrics.total_capacity_used.replace(
+                                              "%",
+                                              "",
+                                            ),
+                                          ) >= 60
+                                        ? "bg-yellow-500"
+                                        : "bg-green-500"
+                                  }`}
+                                  style={{
+                                    width: stats.metrics.total_capacity_used,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between">
+                                <span>Оповещения:</span>
+                                <span
+                                  className={`font-semibold ${getAlertColor(totalAlerts)}`}
+                                >
+                                  {totalAlerts}
+                                </span>
+                              </div>
+                              {totalAlerts > 0 && (
+                                <div className="flex items-center gap-1 text-red-500">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span className="text-xs">
+                                    Требуется внимание
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-          {warehouses.length === 0 && (
-            <div className="text-center py-12">
-              <Warehouse className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                Склады не найдены
-              </h3>
-              <p className="text-gray-500 mb-6">
-                Начните работу, создав свой первый склад
-              </p>
-              <Button onClick={() => setCreateModalOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Создать первый склад
-              </Button>
+                      {!stats && (
+                        <div className="text-center py-2 text-gray-500 text-xs">
+                          Загрузка статистики...
+                        </div>
+                      )}
+
+                      <Button
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => handleWarehouseSelect(warehouse.code)}
+                      >
+                        Войти на склад
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-          )}
-        </main>
+
+            {warehouses.length === 0 && (
+              <div className="text-center py-12">
+                <Warehouse className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  Склады не найдены
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  Начните работу, создав свой первый склад
+                </p>
+                <Button onClick={() => setCreateModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Создать первый склад
+                </Button>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
 
-      {/* Create Warehouse Modal */}
       <CreateWarehouseModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onWarehouseCreated={handleWarehouseCreated}
       />
 
-      {/* Edit Warehouse Modal */}
       <EditWarehouseModal
         open={editModalOpen}
         onClose={() => {
@@ -585,7 +544,6 @@ const WarehouseSelection = () => {
         warehouse={selectedWarehouse}
       />
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -597,7 +555,7 @@ const WarehouseSelection = () => {
         variant="destructive"
         loading={deleting}
       />
-    </div>
+    </>
   );
 };
 
