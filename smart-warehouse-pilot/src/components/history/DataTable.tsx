@@ -17,7 +17,11 @@ import {
   ChevronUp,
   ChevronDown,
   Loader2,
+  LayoutGrid,
+  List,
+  ImageOff,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { apiClient } from "@/lib/api";
 import ProductHistoryModal from "./ProductHistoryModal";
 
@@ -31,6 +35,7 @@ interface DataRow {
   lastScannedAt: string;
   statusCode: string;
   robotCode: string;
+  imageUrl?: string;
 }
 
 interface ProductLastInventoryPageDTO {
@@ -68,7 +73,26 @@ const DataTable = ({
   const [selectedProductsModal, setSelectedProductsModal] = useState<string[]>(
     [],
   );
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [imageCache, setImageCache] = useState<Record<string, string>>({});
   const rowsPerPage = 20;
+
+  const loadImage = (productCode: string, imageUrl: string) => {
+    if (imageCache[productCode]) return;
+    const token = localStorage.getItem("token");
+    const url = imageUrl.startsWith("http")
+      ? imageUrl
+      : `http://localhost:8080/api/images/${imageUrl.split("/").pop()}`;
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.blob())
+      .then((b) =>
+        setImageCache((prev) => ({
+          ...prev,
+          [productCode]: URL.createObjectURL(b),
+        })),
+      )
+      .catch(() => {});
+  };
 
   useEffect(() => {
     if (!warehouseCode) return;
@@ -166,12 +190,16 @@ const DataTable = ({
     }
 
     const statusLabels: Record<string, string> = {
-      "OK": "OK",
-      "LOW_STOCK": "Низкий запас",
-      "CRITICAL": "Критический",
+      OK: "OK",
+      LOW_STOCK: "Низкий запас",
+      CRITICAL: "Критический",
     };
 
-    return <Badge variant={variant}>{statusLabels[statusCode] || statusCode || "Неизвестно"}</Badge>;
+    return (
+      <Badge variant={variant}>
+        {statusLabels[statusCode] || statusCode || "Неизвестно"}
+      </Badge>
+    );
   };
 
   const SortIcon = ({ column }: { column: string }) => {
@@ -254,6 +282,22 @@ const DataTable = ({
     <div className="bg-card border rounded-lg">
       <div className="p-4 border-b flex justify-between items-center">
         <div className="flex gap-2">
+          <div className="flex items-center gap-1 mr-4">
+            <Button
+              variant={viewMode === "table" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "cards" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("cards")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -287,113 +331,177 @@ const DataTable = ({
         </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={
-                    selectedProducts.length === data.items.length &&
-                    data.items.length > 0
-                  }
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("lastScannedAt")}
-                className="cursor-pointer hover:bg-muted/50"
+      {viewMode === "table" ? (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={
+                      selectedProducts.length === data.items.length &&
+                      data.items.length > 0
+                    }
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("lastScannedAt")}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-1">
+                    Дата/Время
+                    <SortIcon column="lastScannedAt" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("robotCode")}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-1">
+                    Робот
+                    <SortIcon column="robotCode" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("productCode")}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-1">
+                    Код товара
+                    <SortIcon column="productCode" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("productName")}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-1">
+                    Название товара
+                    <SortIcon column="productName" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("category")}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-1">
+                    Категория
+                    <SortIcon column="category" />
+                  </div>
+                </TableHead>
+                <TableHead className="text-right">Ожидаемое</TableHead>
+                <TableHead className="text-right">Фактическое</TableHead>
+                <TableHead className="text-right">Разница</TableHead>
+                <TableHead>Статус</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.items.map((row) => (
+                <TableRow key={row.productCode} className="hover:bg-muted/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedProducts.includes(row.productCode)}
+                      onCheckedChange={() => handleSelectRow(row.productCode)}
+                    />
+                  </TableCell>
+                  <TableCell>{formatDateSafe(row.lastScannedAt)}</TableCell>
+                  <TableCell>{row.robotCode || "Н/Д"}</TableCell>
+                  <TableCell
+                    className="font-mono cursor-pointer text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                    onClick={() => handleProductClick(row.productCode)}
+                  >
+                    {row.productCode || "Н/Д"}
+                  </TableCell>
+                  <TableCell>{row.productName || "Н/Д"}</TableCell>
+                  <TableCell>{row.category || "Н/Д"}</TableCell>
+                  <TableCell className="text-right">
+                    {row.expectedQuantity ?? 0}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.actualQuantity ?? 0}
+                  </TableCell>
+                  <TableCell
+                    className={`text-right font-semibold ${
+                      row.difference !== 0 ? "text-destructive" : ""
+                    }`}
+                  >
+                    {row.difference > 0 ? "+" : ""}
+                    {row.difference ?? 0}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(row.statusCode)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <>
+        <div className="flex items-center gap-2 mb-2">
+          <Checkbox
+            checked={selectedProducts.length === data.items.length && data.items.length > 0}
+            onCheckedChange={handleSelectAll}
+          />
+          <span className="text-sm text-muted-foreground">Выбрать все ({selectedProducts.length}/{data.items.length})</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {data.items.map((row) => {
+            if (row.imageUrl && !imageCache[row.productCode])
+              loadImage(row.productCode, row.imageUrl);
+            return (
+              <Card
+                key={row.productCode}
+                className="cursor-pointer hover:shadow-md transition-shadow relative"
+                onClick={() => handleProductClick(row.productCode)}
               >
-                <div className="flex items-center gap-1">
-                  Дата/Время
-                  <SortIcon column="lastScannedAt" />
-                </div>
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("robotCode")}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-1">
-                  Робот
-                  <SortIcon column="robotCode" />
-                </div>
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("productCode")}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-1">
-                  Код товара
-                  <SortIcon column="productCode" />
-                </div>
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("productName")}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-1">
-                  Название товара
-                  <SortIcon column="productName" />
-                </div>
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("category")}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-1">
-                  Категория
-                  <SortIcon column="category" />
-                </div>
-              </TableHead>
-              <TableHead className="text-right">Ожидаемое</TableHead>
-              <TableHead className="text-right">Фактическое</TableHead>
-              <TableHead className="text-right">Разница</TableHead>
-              <TableHead>Статус</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.items.map((row) => (
-              <TableRow key={row.productCode} className="hover:bg-muted/50">
-                <TableCell>
+                <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={selectedProducts.includes(row.productCode)}
                     onCheckedChange={() => handleSelectRow(row.productCode)}
                   />
-                </TableCell>
-                <TableCell>{formatDateSafe(row.lastScannedAt)}</TableCell>
-                <TableCell>{row.robotCode || "Н/Д"}</TableCell>
-                <TableCell
-                  className="font-mono cursor-pointer text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                  onClick={() => handleProductClick(row.productCode)}
-                >
-                  {row.productCode || "Н/Д"}
-                </TableCell>
-                <TableCell>{row.productName || "Н/Д"}</TableCell>
-                <TableCell>{row.category || "Н/Д"}</TableCell>
-                <TableCell className="text-right">
-                  {row.expectedQuantity ?? 0}
-                </TableCell>
-                <TableCell className="text-right">
-                  {row.actualQuantity ?? 0}
-                </TableCell>
-                <TableCell
-                  className={`text-right font-semibold ${
-                    row.difference !== 0 ? "text-destructive" : ""
-                  }`}
-                >
-                  {row.difference > 0 ? "+" : ""}
-                  {row.difference ?? 0}
-                </TableCell>
-                <TableCell>{getStatusBadge(row.statusCode)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                </div>
+                <div className="h-36 bg-muted flex items-center justify-center rounded-t-lg overflow-hidden">
+                  {imageCache[row.productCode] ? (
+                    <img
+                      src={imageCache[row.productCode]}
+                      alt={row.productName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ImageOff className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <CardContent className="p-3 space-y-1">
+                  <p className="font-medium text-sm truncate">
+                    {row.productName}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {row.productCode}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    {getStatusBadge(row.statusCode)}
+                    <span className="text-xs text-muted-foreground">
+                      {row.difference > 0 ? "+" : ""}
+                      {row.difference ?? 0}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+          {data.items.length === 0 && (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              Нет данных
+            </div>
+          )}
+        </div>
+        </>
+      )}
 
       <div className="p-4 border-t flex justify-between items-center">
         <span className="text-sm text-muted-foreground">
-          Страница {currentPage + 1} из {totalPages} • Всего записей: {data.total}
+          Страница {currentPage + 1} из {totalPages} • Всего записей:{" "}
+          {data.total}
         </span>
         <div className="flex gap-2">
           <Button

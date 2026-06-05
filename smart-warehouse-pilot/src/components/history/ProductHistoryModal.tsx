@@ -58,7 +58,6 @@ interface Props {
   onClose: () => void;
 }
 
-
 const ProductHistoryModal = ({
   warehouseCode,
   productCodes,
@@ -76,6 +75,10 @@ const ProductHistoryModal = ({
   const [aggregation, setAggregation] = useState<"hour" | "day" | "week">(
     "day",
   );
+  const [editingCategory, setEditingCategory] = useState(false);
+  const [categoryDraft, setCategoryDraft] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const productCode = productCodes[0] || "";
@@ -84,13 +87,17 @@ const ProductHistoryModal = ({
 
   // fetch
   useEffect(() => {
-    if (open && productCodes.length > 0) fetchProductHistory();
+    if (open && productCodes.length > 0) {
+      fetchProductHistory();
+      fetchCategories();
+    }
   }, [open, productCodes, aggregation]);
 
   // sync description + image
   useEffect(() => {
     if (!productInfo) return;
     setDescriptionDraft(productInfo.description || "");
+    setCategoryDraft(productInfo.category || "");
     if (productInfo.imageUrl) {
       const url = `http://localhost:8080/api/images/upload/${encodeURIComponent(productCode)}`;
       fetch(url, {
@@ -138,7 +145,8 @@ const ProductHistoryModal = ({
         },
       );
       if (res.ok) {
-        const key = await res.text(); setProductInfo((p) => (p ? { ...p, imageUrl: key } : p));
+        const key = await res.text();
+        setProductInfo((p) => (p ? { ...p, imageUrl: key } : p));
         toast.success("Изображение загружено");
       } else {
         toast.error("Не удалось загрузить изображение");
@@ -154,10 +162,74 @@ const ProductHistoryModal = ({
   // save description
   const handleSaveDescription = async () => {
     setSavingDescription(true);
-    setProductInfo((p) => (p ? { ...p, description: descriptionDraft } : p));
-    setEditingDescription(false);
-    toast.success("Описание обновлено");
-    setSavingDescription(false);
+    try {
+      const token = localStorage.getItem("token");
+      const body: any = { description: descriptionDraft };
+      if (productInfo?.name) body.name = productInfo.name;
+      if (productInfo?.category) body.category = productInfo.category;
+      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setProductInfo(await res.json());
+        setEditingDescription(false);
+        toast.success("Описание обновлено");
+      } else {
+        toast.error("Не удалось обновить описание");
+      }
+    } catch {
+      toast.error("Ошибка обновления");
+    } finally {
+      setSavingDescription(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/products/categories", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.ok) setCategories(await res.json());
+    } catch {}
+  };
+
+  const handleSaveCategory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ category: categoryDraft }),
+      });
+      if (res.ok) {
+        setProductInfo(await res.json());
+        setEditingCategory(false);
+        toast.success("Категория обновлена");
+      } else {
+        toast.error("Не удалось обновить категорию");
+      }
+    } catch { toast.error("Ошибка"); }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!confirm(`Удалить товар ${productCode}?`)) return;
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        toast.success("Товар удалён");
+        onClose();
+      } else {
+        toast.error("Не удалось удалить товар");
+      }
+    } catch { toast.error("Ошибка"); }
+    finally { setDeleting(false); }
   };
 
   // chart data
@@ -268,14 +340,44 @@ const ProductHistoryModal = ({
                     <p className="text-sm text-muted-foreground font-mono">
                       {productCode}
                     </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive mt-1"
+                      onClick={handleDeleteProduct}
+                      disabled={deleting}
+                    >
+                      {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                      Удалить товар
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-muted rounded-lg p-3">
+                    <div className="bg-muted rounded-lg p-3 relative group">
                       <p className="text-xs text-muted-foreground">Категория</p>
-                      <p className="font-semibold">
-                        {productInfo?.category || "—"}
-                      </p>
+                      {editingCategory ? (
+                        <div className="flex gap-1 mt-1">
+                          <select
+                            value={categoryDraft}
+                            onChange={(e) => setCategoryDraft(e.target.value)}
+                            className="text-sm border rounded px-1 py-0.5 w-full"
+                          >
+                            <option value="">—</option>
+                            {categories.map((cat) => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                          <Button size="sm" onClick={handleSaveCategory}><Check className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingCategory(false)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <p className="font-semibold">{productInfo?.category || "—"}</p>
+                          <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100" onClick={() => setEditingCategory(true)}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-3">
                       <p className="text-xs text-muted-foreground">
