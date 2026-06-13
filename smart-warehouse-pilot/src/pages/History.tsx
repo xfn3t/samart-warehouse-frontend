@@ -57,8 +57,39 @@ const History = () => {
     toast.success("Фильтры применены");
   };
 
-  const handleExportExcel = (selected: string[]) => {
-    toast.success(`Экспорт ${selected.length} записей в Excel`);
+  const handleExportExcel = async (selected: string[]) => {
+    try {
+      const token = localStorage.getItem("token");
+      let url;
+      const opts: RequestInit = { headers: { Authorization: `Bearer ${token}` } };
+      if (selected.length > 0) {
+        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel/by-skus`;
+        opts.method = "POST";
+        (opts.headers as Record<string,string>)["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(selected);
+      } else {
+        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel`;
+      }
+      const res = await fetch(url, opts);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reportUid) {
+          const dl = await fetch(`http://localhost:8080/api/reports/download/${data.reportUid}`, { headers: { Authorization: `Bearer ${token}` } });
+          if (dl.ok) {
+            const blob = await dl.blob();
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            a.click();
+            toast.success(selected.length > 0 ? `Excel-отчёт по ${selected.length} товарам скачан` : "Полный Excel-отчёт скачан");
+          }
+        }
+      } else {
+        toast.error("Не удалось сформировать отчёт");
+      }
+    } catch {
+      toast.error("Ошибка скачивания");
+    }
   };
 
   const handleExportPDF = async (selected: string[]) => {
@@ -72,7 +103,8 @@ const History = () => {
       if (selected.length > 0) {
         url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf/by-skus`;
         options.method = "POST";
-        (options.headers as Record<string,string>)["Content-Type"] = "application/json";
+        (options.headers as Record<string, string>)["Content-Type"] =
+          "application/json";
         options.body = JSON.stringify(selected);
       } else {
         url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf`;
@@ -90,7 +122,7 @@ const History = () => {
         toast.success(
           selected.length > 0
             ? `PDF-отчёт по ${selected.length} товарам скачан`
-            : "Полный PDF-отчёт скачан"
+            : "Полный PDF-отчёт скачан",
         );
       } else {
         toast.error("Не удалось сформировать отчёт");
