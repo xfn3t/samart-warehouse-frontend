@@ -1,7 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, TrendingDown, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import {
+  RefreshCw,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 
 interface AIPredictionsProps {
@@ -27,29 +34,16 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
   const fetchCriticalPredictions = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/${warehouseCode}/predict/criticality/critical`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (!text) {
-        throw new Error("Empty response from server");
-      }
-
-      const result = JSON.parse(text);
-
-      if (result.status === "ok") {
+      const result = await apiClient.get(`/${warehouseCode}/predict/criticality/critical`);
+      if (result?.status === "ok") {
         setPredictions(result.predictions || []);
         setLastUpdated(Date.now());
-        toast.success(`Загружено ${result.predictions?.length || 0} критических прогнозов`);
       } else {
-        toast.error(result.message || "Не удалось загрузить прогнозы");
+        setPredictions([]);
       }
-    } catch (error) {
-      console.error("Failed to fetch critical predictions:", error);
-      toast.error("Не удалось загрузить критические прогнозы с сервера");
+    } catch {
+      setPredictions([]);
+      // apiClient already shows toast on real errors
     } finally {
       setLoading(false);
     }
@@ -59,31 +53,15 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
   const fetchAllPredictions = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/${warehouseCode}/predict/criticality`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (!text) {
-        throw new Error("Empty response from server");
-      }
-
-      const result = JSON.parse(text);
-
-      if (result.status === "ok") {
-        // Берем только критические прогнозы из всех данных
-        const criticalPredictions = result.data?.CRITICAL || [];
-        setPredictions(criticalPredictions);
+      const result = await apiClient.get(`/${warehouseCode}/predict/criticality`);
+      if (result?.status === "ok") {
+        setPredictions(result.data?.CRITICAL || []);
         setLastUpdated(Date.now());
-        toast.success(`Загружено ${criticalPredictions.length} критических прогнозов`);
       } else {
-        toast.error(result.message || "Не удалось загрузить прогнозы");
+        setPredictions([]);
       }
-    } catch (error) {
-      console.error("Failed to fetch all predictions:", error);
-      toast.error("Не удалось загрузить прогнозы с сервера");
+    } catch {
+      setPredictions([]);
     } finally {
       setLoading(false);
     }
@@ -91,7 +69,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
 
   // Первоначальная загрузка данных
   useEffect(() => {
-    console.log('Loading AI predictions for:', warehouseCode);
+    console.log("Loading AI predictions for:", warehouseCode);
     fetchCriticalPredictions();
   }, [warehouseCode, fetchCriticalPredictions]);
 
@@ -140,7 +118,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
   };
 
   // Этот компонент отображает ТОЛЬКО критические прогнозы
-  const criticalPredictions = predictions.filter(p => p.critical_level === "CRITICAL");
+  const criticalPredictions = predictions.filter(
+    (p) => p.critical_level === "CRITICAL",
+  );
 
   return (
     <Card className="h-full">
@@ -157,7 +137,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
               onClick={handleRefresh}
               disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
             </Button>
           </div>
         </div>
@@ -197,7 +179,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
         {loading ? (
           <div className="text-center py-8">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Загрузка критических прогнозов...</p>
+            <p className="text-sm text-muted-foreground">
+              Загрузка критических прогнозов...
+            </p>
           </div>
         ) : criticalPredictions.length === 0 ? (
           <div className="text-center py-8">
@@ -208,7 +192,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
           </div>
         ) : (
           criticalPredictions.map((prediction) => {
-            const depletionDate = getDepletionDate(prediction.days_until_stockout);
+            const depletionDate = getDepletionDate(
+              prediction.days_until_stockout,
+            );
             const styles = getCriticalityStyles(prediction.critical_level);
 
             return (
@@ -228,8 +214,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
                     <span className="text-sm font-semibold">
                       {prediction.days_until_stockout <= 0
                         ? "НЕТ В НАЛИЧИИ"
-                        : `${Math.round(prediction.days_until_stockout)} дн.`
-                      }
+                        : `${Math.round(prediction.days_until_stockout)} дн.`}
                     </span>
                     <p className="text-xs opacity-75">до исчерпания</p>
                   </div>
@@ -257,7 +242,10 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
                 {prediction.last_updated && (
                   <div className="mt-2 pt-2 border-t border-opacity-20">
                     <p className="text-xs opacity-60">
-                      Обновлено: {new Date(prediction.last_updated).toLocaleTimeString("ru-RU")}
+                      Обновлено:{" "}
+                      {new Date(prediction.last_updated).toLocaleTimeString(
+                        "ru-RU",
+                      )}
                     </p>
                   </div>
                 )}

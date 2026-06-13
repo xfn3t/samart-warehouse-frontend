@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,23 +35,32 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
   const [status, setStatus] = useState<string>("all");
   const [robotCode, setRobotCode] = useState<string>("all");
   const [categories, setCategories] = useState<string[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [robots, setRobots] = useState<Robot[]>([]);
   const [loadingRobots, setLoadingRobots] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const categoryOptions: { key: string; label: string }[] = [
-    { key: "network", label: "сеть" },
-    { key: "electronics", label: "электроника" },
-    { key: "cables", label: "кабели" },
-    { key: "accessories", label: "аксессуары" },
-    { key: "components", label: "компоненты" }
-  ];
+
 
   useEffect(() => {
     if (warehouseCode) {
       fetchRobots();
+      fetchCategories();
     }
   }, [warehouseCode]);
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8080/api/products/categories", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCategoryOptions(Array.isArray(data) ? data : []);
+      }
+    } catch {}
+  };
 
   const fetchRobots = async () => {
     setLoadingRobots(true);
@@ -53,7 +68,7 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
       const data = await apiClient.get(`/robots/warehouse/${warehouseCode}`);
       setRobots(data);
     } catch (error) {
-      console.error('Failed to fetch robots:', error);
+      console.error("Failed to fetch robots:", error);
     } finally {
       setLoadingRobots(false);
     }
@@ -79,16 +94,16 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleApplyFilters();
     }
   };
 
   const handleCategoryChange = (category: string) => {
-    setCategories(prev =>
+    setCategories((prev) =>
       prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
     );
   };
 
@@ -99,7 +114,11 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
     { value: "CRITICAL", label: "Критический" },
   ];
 
-  const hasActiveFilters = searchQuery || status !== "all" || robotCode !== "all" || categories.length > 0;
+  const hasActiveFilters =
+    searchQuery ||
+    status !== "all" ||
+    robotCode !== "all" ||
+    categories.length > 0;
 
   return (
     <div className="bg-card border rounded-lg p-6 space-y-6">
@@ -129,7 +148,7 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
                 <SelectValue placeholder="Выберите статус" />
               </SelectTrigger>
               <SelectContent>
-                {statusOptions.map(option => (
+                {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -140,14 +159,24 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
 
           <div className="flex-1 min-w-[200px]">
             <label className="text-sm font-medium mb-2 block">Робот</label>
-            <Select value={robotCode} onValueChange={setRobotCode} disabled={loadingRobots}>
+            <Select
+              value={robotCode}
+              onValueChange={setRobotCode}
+              disabled={loadingRobots}
+            >
               <SelectTrigger>
-                <SelectValue placeholder={loadingRobots ? "Загрузка роботов..." : "Выберите робота"} />
+                <SelectValue
+                  placeholder={
+                    loadingRobots ? "Загрузка роботов..." : "Выберите робота"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Все роботы</SelectItem>
-                {robots.map(robot => (
-                  <SelectItem key={robot.id} value={robot.code}>{robot.code}</SelectItem>
+                {robots.map((robot) => (
+                  <SelectItem key={robot.id} value={robot.code}>
+                    {robot.code}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -156,19 +185,19 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
           <div className="flex-1 min-w-[300px]">
             <label className="text-sm font-medium mb-2 block">Категории</label>
             <div className="flex flex-wrap gap-2">
-              {categoryOptions.map(cat => (
+              {categoryOptions.map((cat) => (
                 <Badge
-                  key={cat.key}
-                  variant={categories.includes(cat.key) ? "default" : "outline"}
+                  key={cat}
+                  variant={categories.includes(cat) ? "default" : "outline"}
                   className={cn(
                     "cursor-pointer transition-colors",
-                    categories.includes(cat.key)
+                    categories.includes(cat)
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "hover:bg-muted"
+                      : "hover:bg-muted",
                   )}
-                  onClick={() => handleCategoryChange(cat.key)}
+                  onClick={() => handleCategoryChange(cat)}
                 >
-                  {cat.label}
+                  {cat}
                 </Badge>
               ))}
             </div>

@@ -19,44 +19,55 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const config: RequestInit = {
-      ...options,
-      headers,
-    };
+    const config: RequestInit = { ...options, headers };
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
       if (!response.ok) {
-        if (response.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("selectedWarehouse");
-          window.location.href = "/login";
-          throw new Error("Authentication required");
-        }
-
-        const errorText = await response.text();
-        let errorMessage = `HTTP error! status: ${response.status}`;
-
+        let errorMessage = `Ошибка ${response.status}`;
         try {
+          const errorText = await response.text();
           const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = errorText || errorMessage;
-        }
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {}
 
-        throw new Error(errorMessage);
+        switch (response.status) {
+          case 401:
+            localStorage.removeItem("token");
+            localStorage.removeItem("selectedWarehouse");
+            toast.error("Сессия истекла. Авторизуйтесь заново.");
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 1500);
+            throw new Error(errorMessage);
+          case 403:
+            toast.error(errorMessage || "Доступ запрещён");
+            throw new Error(errorMessage);
+          case 404:
+            toast.error(errorMessage || "Ресурс не найден");
+            throw new Error(errorMessage);
+          case 409:
+            toast.error(errorMessage || "Конфликт данных");
+            throw new Error(errorMessage);
+          case 422:
+            toast.error(errorMessage || "Невалидные данные");
+            throw new Error(errorMessage);
+          default:
+            toast.error(errorMessage);
+            throw new Error(errorMessage);
+        }
       }
 
-      // For file uploads, we might not have JSON response
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
       }
-
       return await response.text();
     } catch (error) {
-      console.error("API request failed:", error);
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        toast.error("Сервер недоступен. Проверьте подключение.");
+      }
       throw error;
     }
   }
@@ -67,22 +78,13 @@ class ApiClient {
 
   async post(endpoint: string, data?: any, options: RequestInit = {}) {
     const isFormData = data instanceof FormData;
-
-    const requestOptions: RequestInit = {
-      method: "POST",
-      ...options,
-    };
-
-    if (data && !isFormData) {
-      requestOptions.body = JSON.stringify(data);
-    } else if (data && isFormData) {
-      // Remove Content-Type for FormData to let browser set it with boundary
-      if (requestOptions.headers && "Content-Type" in requestOptions.headers) {
+    const requestOptions: RequestInit = { method: "POST", ...options };
+    if (data && !isFormData) requestOptions.body = JSON.stringify(data);
+    else if (data && isFormData) {
+      if (requestOptions.headers && "Content-Type" in requestOptions.headers)
         delete (requestOptions.headers as any)["Content-Type"];
-      }
       requestOptions.body = data;
     }
-
     return this.request(endpoint, requestOptions);
   }
 
@@ -94,9 +96,7 @@ class ApiClient {
   }
 
   async delete(endpoint: string) {
-    return this.request(endpoint, {
-      method: "DELETE",
-    });
+    return this.request(endpoint, { method: "DELETE" });
   }
 }
 

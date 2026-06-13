@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,24 +17,12 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.accessToken);
+      const data = await apiClient.post("/auth/login", { email, password });
+      localStorage.setItem("token", data.accessToken);
       toast.success("Вход выполнен успешно");
       navigate("/warehouses");
-    } catch (error) {
-      toast.error("Ошибка входа");
+    } catch {
+      // apiClient already shows toast
     } finally {
       setLoading(false);
     }
@@ -82,7 +71,10 @@ const Login = () => {
           <div className="text-center">
             <p className="text-gray-600">
               Нет учетной записи?{" "}
-              <Link to="/register" className="text-blue-500 hover:text-blue-700 underline">
+              <Link
+                to="/register"
+                className="text-blue-500 hover:text-blue-700 underline"
+              >
                 Создать учетную запись
               </Link>
             </p>
