@@ -34,6 +34,7 @@ interface ProductHistoryResponse {
   product: ProductDTO;
   warehouse: any;
   dataPoints: DataPoint[];
+  currentQuantity: number;
 }
 
 interface ProductWarehouseParam {
@@ -167,11 +168,17 @@ const ProductHistoryModal = ({
       const body: any = { description: descriptionDraft };
       if (productInfo?.name) body.name = productInfo.name;
       if (productInfo?.category) body.category = productInfo.category;
-      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        },
+      );
       if (res.ok) {
         setProductInfo(await res.json());
         setEditingDescription(false);
@@ -198,11 +205,17 @@ const ProductHistoryModal = ({
   const handleSaveCategory = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ category: categoryDraft }),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ category: categoryDraft }),
+        },
+      );
       if (res.ok) {
         setProductInfo(await res.json());
         setEditingCategory(false);
@@ -210,7 +223,9 @@ const ProductHistoryModal = ({
       } else {
         toast.error("Не удалось обновить категорию");
       }
-    } catch { toast.error("Ошибка"); }
+    } catch {
+      toast.error("Ошибка");
+    }
   };
 
   const handleDeleteProduct = async () => {
@@ -218,18 +233,24 @@ const ProductHistoryModal = ({
     setDeleting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/api/products/${encodeURIComponent(productCode)}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (res.ok) {
         toast.success("Товар удалён");
         onClose();
       } else {
         toast.error("Не удалось удалить товар");
       }
-    } catch { toast.error("Ошибка"); }
-    finally { setDeleting(false); }
+    } catch {
+      toast.error("Ошибка");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // chart data
@@ -347,7 +368,9 @@ const ProductHistoryModal = ({
                       onClick={handleDeleteProduct}
                       disabled={deleting}
                     >
-                      {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                      {deleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : null}
                       Удалить товар
                     </Button>
                   </div>
@@ -364,16 +387,33 @@ const ProductHistoryModal = ({
                           >
                             <option value="">—</option>
                             {categories.map((cat) => (
-                              <option key={cat} value={cat}>{cat}</option>
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
                             ))}
                           </select>
-                          <Button size="sm" onClick={handleSaveCategory}><Check className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="outline" onClick={() => setEditingCategory(false)}><X className="h-3 w-3" /></Button>
+                          <Button size="sm" onClick={handleSaveCategory}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingCategory(false)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1">
-                          <p className="font-semibold">{productInfo?.category || "—"}</p>
-                          <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100" onClick={() => setEditingCategory(true)}>
+                          <p className="font-semibold">
+                            {productInfo?.category || "—"}
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                            onClick={() => setEditingCategory(true)}
+                          >
                             <Pencil className="h-3 w-3" />
                           </Button>
                         </div>
@@ -469,6 +509,7 @@ const ProductHistoryModal = ({
             (() => {
               const dps = historyData[0].dataPoints;
               const last = dps[dps.length - 1];
+              const curQty = historyData[0].currentQuantity ?? last.quantity;
               return (
                 <div className="grid grid-cols-4 gap-4">
                   <Card>
@@ -491,7 +532,7 @@ const ProductHistoryModal = ({
                       <p className="text-xs text-muted-foreground">
                         Текущее кол-во
                       </p>
-                      <p className="text-lg font-bold">{last.quantity}</p>
+                      <p className="text-lg font-bold">{curQty}</p>
                     </CardContent>
                   </Card>
                   <Card>
@@ -506,7 +547,7 @@ const ProductHistoryModal = ({
                     <CardContent className="p-4 text-center">
                       <p className="text-xs text-muted-foreground">Статус</p>
                       <p
-                        className={`text-lg font-bold ${whParams && last.quantity <= whParams.minStock ? "text-red-600" : whParams && last.quantity <= whParams.optimalStock ? "text-yellow-600" : "text-green-600"}`}
+                        className={`text-lg font-bold ${whParams && curQty <= whParams.minStock ? "text-red-600" : whParams && curQty <= whParams.optimalStock ? "text-yellow-600" : "text-green-600"}`}
                       >
                         {whParams && last.quantity <= whParams.minStock
                           ? "Критический"
