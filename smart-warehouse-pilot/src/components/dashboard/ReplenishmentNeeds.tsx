@@ -144,7 +144,8 @@ const ReplenishmentNeeds = ({ warehouseCode }: ReplenishmentNeedsProps) => {
     );
   }
 
-  const productsNeedingReplenishment = products.filter(needsReplenishment);
+  const sorted = [...products].sort((a,b) => (a.quantity / a.minStock) - (b.quantity / b.minStock));
+  const productsNeedingReplenishment = sorted.filter(p => p.quantity < p.minStock);
   const remainingCount = Math.max(0, productsNeedingReplenishment.length - 4);
 
   return (
