@@ -73,9 +73,9 @@ const ProductHistoryModal = ({
   const [savingDescription, setSavingDescription] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [aggregation, setAggregation] = useState<"hour" | "day" | "week">(
-    "day",
-  );
+  const [aggregation, setAggregation] = useState<
+    "hour" | "day" | "week" | "full"
+  >("day");
   const [editingCategory, setEditingCategory] = useState(false);
   const [categoryDraft, setCategoryDraft] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -260,10 +260,11 @@ const ProductHistoryModal = ({
       if (!p.dataPoints) return;
       p.dataPoints.forEach((dp) => {
         const ts = new Date(dp.timestamp).getTime();
-        const date = new Date(dp.timestamp).toLocaleDateString("ru-RU", {
-          day: "2-digit",
-          month: "2-digit",
-        });
+        const showTime = aggregation === "hour" || aggregation === "full";
+        const date = new Date(dp.timestamp).toLocaleDateString("ru-RU", showTime
+          ? { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }
+          : { day: "2-digit", month: "2-digit" }
+        );
         let entry = map.find((d) => d.timestamp === ts);
         if (!entry) {
           entry = { timestamp: ts, date };
@@ -565,7 +566,7 @@ const ProductHistoryModal = ({
           {historyData.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Агрегация:</span>
-              {(["hour", "day", "week"] as const).map((agg) => (
+              {(["hour", "day", "week", "full"] as const).map((agg) => (
                 <Button
                   key={agg}
                   size="sm"
@@ -576,7 +577,9 @@ const ProductHistoryModal = ({
                     ? "По часам"
                     : agg === "day"
                       ? "По дням"
-                      : "По неделям"}
+                      : agg === "full"
+                        ? "Полностью"
+                        : "По неделям"}
                 </Button>
               ))}
             </div>
