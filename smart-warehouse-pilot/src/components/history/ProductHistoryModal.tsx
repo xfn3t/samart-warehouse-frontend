@@ -18,7 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Loader2, ImageOff, Camera, Check, X, Pencil } from "lucide-react";
+import { Loader2, ImageOff, Camera, Check, X, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
 
@@ -35,6 +35,9 @@ interface ProductHistoryResponse {
   warehouse: any;
   dataPoints: DataPoint[];
   currentQuantity: number;
+  zone?: number;
+  row?: number;
+  shelf?: number;
 }
 
 interface ProductWarehouseParam {
@@ -361,6 +364,12 @@ const ProductHistoryModal = ({
                     <p className="text-sm text-muted-foreground font-mono">
                       {productCode}
                     </p>
+                    {historyData.length > 0 && historyData[0].zone && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        Зона {historyData[0].zone}, Ряд {historyData[0].row}, Полка {historyData[0].shelf}
+                      </p>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
