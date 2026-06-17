@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import WarehouseSelection from "./pages/WarehouseSelection";
 import Robots from "./pages/Robots";
 import Users from "./pages/Users";
+import Products from "./pages/Products";
 import Reports from "./pages/Reports";
 import WarehouseReports from "./pages/WarehouseReports";
 import Dashboard from "./pages/Dashboard";
@@ -19,6 +20,7 @@ const App = () => (
       <Route path="/warehouses" element={<WarehouseSelection />} />
       <Route path="/robots" element={<Robots />} />
       <Route path="/users" element={<Users />} />
+      <Route path="/products" element={<Products />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/reports/:warehouseCode" element={<WarehouseReports />} />
       <Route path="/dashboard/:warehouseCode" element={<Dashboard />} />

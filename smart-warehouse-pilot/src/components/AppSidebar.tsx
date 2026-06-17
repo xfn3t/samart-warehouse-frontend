@@ -1,12 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Warehouse, Bot, Users, FileText } from "lucide-react";
+import { Warehouse, Bot, Users, Package, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { path: "/warehouses", label: "Склады", icon: Warehouse },
   { path: "/robots", label: "Роботы", icon: Bot },
   { path: "/users", label: "Пользователи", icon: Users, adminOnly: true },
+  { path: "/products", label: "Продукты", icon: Package },
   { path: "/reports", label: "Отчёты", icon: FileText },
 ];
 
@@ -23,7 +24,9 @@ const AppSidebar = () => {
           .map((item) => (
             <Button
               key={item.path}
-              variant={location.pathname.startsWith(item.path) ? "secondary" : "ghost"}
+              variant={
+                location.pathname.startsWith(item.path) ? "secondary" : "ghost"
+              }
               className="w-full justify-start"
               onClick={() => navigate(item.path)}
             >
