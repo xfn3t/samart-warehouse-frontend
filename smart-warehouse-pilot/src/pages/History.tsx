@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import FilterPanel from "@/components/history/FilterPanel";
@@ -22,6 +23,7 @@ interface HistorySummaryDTO {
 const History = () => {
   const navigate = useNavigate();
   const { warehouseCode } = useParams();
+  const { isObserver } = useAuth();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [summary, setSummary] = useState<HistorySummaryDTO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,11 +63,14 @@ const History = () => {
     try {
       const token = localStorage.getItem("token");
       let url;
-      const opts: RequestInit = { headers: { Authorization: `Bearer ${token}` } };
+      const opts: RequestInit = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
       if (selected.length > 0) {
         url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel/by-skus`;
         opts.method = "POST";
-        (opts.headers as Record<string,string>)["Content-Type"] = "application/json";
+        (opts.headers as Record<string, string>)["Content-Type"] =
+          "application/json";
         opts.body = JSON.stringify(selected);
       } else {
         url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel`;
@@ -74,14 +79,21 @@ const History = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.reportUid) {
-          const dl = await fetch(`http://localhost:8080/api/reports/download/${data.reportUid}`, { headers: { Authorization: `Bearer ${token}` } });
+          const dl = await fetch(
+            `http://localhost:8080/api/reports/download/${data.reportUid}`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
           if (dl.ok) {
             const blob = await dl.blob();
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
             a.download = `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.xlsx`;
             a.click();
-            toast.success(selected.length > 0 ? `Excel-отчёт по ${selected.length} товарам скачан` : "Полный Excel-отчёт скачан");
+            toast.success(
+              selected.length > 0
+                ? `Excel-отчёт по ${selected.length} товарам скачан`
+                : "Полный Excel-отчёт скачан",
+            );
           }
         }
       } else {
@@ -154,7 +166,7 @@ const History = () => {
       <Header warehouseCode={warehouseCode} />
       <Navigation
         warehouseCode={warehouseCode}
-        onUploadClick={() => setUploadModalOpen(true)}
+        onUploadClick={isObserver ? undefined : () => setUploadModalOpen(true)}
       />
 
       <main className="p-6 space-y-6">

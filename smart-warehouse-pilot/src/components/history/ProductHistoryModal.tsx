@@ -21,6 +21,7 @@ import {
 import { Loader2, ImageOff, Camera, Check, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // ---- types ----
 
@@ -65,6 +66,7 @@ const ProductHistoryModal = ({
   open,
   onClose,
 }: Props) => {
+  const { isObserver } = useAuth();
   const [historyData, setHistoryData] = useState<ProductHistoryResponse[]>([]);
   const [productInfo, setProductInfo] = useState<ProductDTO | null>(null);
   const [loading, setLoading] = useState(false);
@@ -261,9 +263,16 @@ const ProductHistoryModal = ({
       p.dataPoints.forEach((dp) => {
         const ts = new Date(dp.timestamp).getTime();
         const showTime = aggregation === "hour" || aggregation === "full";
-        const date = new Date(dp.timestamp).toLocaleDateString("ru-RU", showTime
-          ? { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }
-          : { day: "2-digit", month: "2-digit" }
+        const date = new Date(dp.timestamp).toLocaleDateString(
+          "ru-RU",
+          showTime
+            ? {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            : { day: "2-digit", month: "2-digit" },
         );
         let entry = map.find((d) => d.timestamp === ts);
         if (!entry) {
@@ -333,6 +342,7 @@ const ProductHistoryModal = ({
                       <span className="text-xs">Нет фото</span>
                     </div>
                   )}
+                  {!isObserver && (
                   <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     {uploadingImage ? (
                       <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -353,6 +363,7 @@ const ProductHistoryModal = ({
                       disabled={uploadingImage}
                     />
                   </label>
+                  )}
                 </div>
 
                 {/* details */}
@@ -362,18 +373,20 @@ const ProductHistoryModal = ({
                     <p className="text-sm text-muted-foreground font-mono">
                       {productCode}
                     </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive mt-1"
-                      onClick={handleDeleteProduct}
-                      disabled={deleting}
-                    >
-                      {deleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      ) : null}
-                      Удалить товар
-                    </Button>
+                    {!isObserver && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive mt-1"
+                        onClick={handleDeleteProduct}
+                        disabled={deleting}
+                      >
+                        {deleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : null}
+                        Удалить товар
+                      </Button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
@@ -409,7 +422,7 @@ const ProductHistoryModal = ({
                           <p className="font-semibold">
                             {productInfo?.category || "—"}
                           </p>
-                          <Button
+                          {!isObserver && (<Button
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5 opacity-0 group-hover:opacity-100"
@@ -417,6 +430,7 @@ const ProductHistoryModal = ({
                           >
                             <Pencil className="h-3 w-3" />
                           </Button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -444,7 +458,7 @@ const ProductHistoryModal = ({
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                         Описание
                       </p>
-                      {!editingDescription && (
+                      {!isObserver && !editingDescription && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -570,7 +584,7 @@ const ProductHistoryModal = ({
                 <Button
                   key={agg}
                   size="sm"
-                  variant={aggregation       === agg ? "default" : "outline"}
+                  variant={aggregation === agg ? "default" : "outline"}
                   onClick={() => setAggregation(agg)}
                 >
                   {agg === "hour"

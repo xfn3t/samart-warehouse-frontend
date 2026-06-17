@@ -4,7 +4,17 @@ import AppSidebar from "@/components/AppSidebar";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, LogOut, Warehouse, RefreshCw, Edit, Trash2, Users, FileText } from "lucide-react";
+import {
+  Bot,
+  Plus,
+  LogOut,
+  Warehouse,
+  RefreshCw,
+  Edit,
+  Trash2,
+  Users,
+  FileText,
+} from "lucide-react";
 import { toast } from "sonner";
 import CreateRobotModal from "@/components/CreateRobotModal";
 import EditRobotModal from "@/components/EditRobotModal";
@@ -30,6 +40,8 @@ interface WarehouseDTO {
 
 const Robots = () => {
   const navigate = useNavigate();
+  const { isStorekeeper, isObserver } = useAuth();
+  const canManageRobots = !isStorekeeper && !isObserver;
   const [robots, setRobots] = useState<RobotDTO[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +64,10 @@ const Robots = () => {
 
   const fetchWarehouses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/warehouse', {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/api/warehouse", {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -63,10 +75,10 @@ const Robots = () => {
         const data = await response.json();
         setWarehouses(data);
       } else {
-        throw new Error('Failed to fetch warehouses');
+        throw new Error("Failed to fetch warehouses");
       }
     } catch (error) {
-      console.error('Failed to fetch warehouses:', error);
+      console.error("Failed to fetch warehouses:", error);
       setLoading(false);
     }
   };
@@ -74,29 +86,35 @@ const Robots = () => {
   const fetchAllRobots = async () => {
     setRefreshing(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const allRobots: RobotDTO[] = [];
 
       for (const warehouse of warehouses) {
         try {
-          const response = await fetch(`http://localhost:8080/api/robots/warehouse/${warehouse.code}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
+          const response = await fetch(
+            `http://localhost:8080/api/robots/warehouse/${warehouse.code}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          });
+          );
 
           if (response.ok) {
             const robotsData = await response.json();
             allRobots.push(...robotsData);
           }
         } catch (error) {
-          console.error(`Failed to fetch robots for warehouse ${warehouse.code}:`, error);
+          console.error(
+            `Failed to fetch robots for warehouse ${warehouse.code}:`,
+            error,
+          );
         }
       }
 
       setRobots(allRobots);
     } catch (error) {
-      console.error('Failed to fetch robots:', error);
+      console.error("Failed to fetch robots:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -104,9 +122,9 @@ const Robots = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('selectedWarehouse');
-    navigate('/login');
+    localStorage.removeItem("token");
+    localStorage.removeItem("selectedWarehouse");
+    navigate("/login");
   };
 
   const handleRefresh = () => {
@@ -141,13 +159,16 @@ const Robots = () => {
 
     setDeleting(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/robots/${selectedRobot.code}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8080/api/robots/${selectedRobot.code}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
         toast.success("Робот успешно удалён!");
@@ -155,10 +176,10 @@ const Robots = () => {
         setDeleteDialogOpen(false);
         setSelectedRobot(null);
       } else {
-        throw new Error('Failed to delete robot');
+        throw new Error("Failed to delete robot");
       }
     } catch (error) {
-      console.error('Failed to delete robot:', error);
+      console.error("Failed to delete robot:", error);
       toast.error("Не удалось удалить робота");
     } finally {
       setDeleting(false);
@@ -198,10 +219,10 @@ const Robots = () => {
   // Статистика по роботам
   const robotStats = {
     total: robots.length,
-    working: robots.filter(r => r.status === "WORKING").length,
-    idle: robots.filter(r => r.status === "IDLE").length,
-    charging: robots.filter(r => r.status === "CHARGING").length,
-    maintenance: robots.filter(r => r.status === "MAINTENANCE").length,
+    working: robots.filter((r) => r.status === "WORKING").length,
+    idle: robots.filter((r) => r.status === "IDLE").length,
+    charging: robots.filter((r) => r.status === "CHARGING").length,
+    maintenance: robots.filter((r) => r.status === "MAINTENANCE").length,
   };
 
   if (loading) {
@@ -241,14 +262,22 @@ const Robots = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-                <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                />
                 Обновить
               </Button>
-              <Button onClick={() => setCreateModalOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Зарегистрировать робота
-              </Button>
+              {canManageRobots && (
+                <Button onClick={() => setCreateModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Зарегистрировать робота
+                </Button>
+              )}
             </div>
           </div>
 
@@ -257,31 +286,41 @@ const Robots = () => {
             <div className="grid grid-cols-5 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-gray-800">{robotStats.total}</div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {robotStats.total}
+                  </div>
                   <div className="text-sm text-gray-600">Всего роботов</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">{robotStats.working}</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {robotStats.working}
+                  </div>
                   <div className="text-sm text-gray-600">Работает</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">{robotStats.idle}</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {robotStats.idle}
+                  </div>
                   <div className="text-sm text-gray-600">Ожидание</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-yellow-600">{robotStats.charging}</div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {robotStats.charging}
+                  </div>
                   <div className="text-sm text-gray-600">Зарядка</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-red-600">{robotStats.maintenance}</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {robotStats.maintenance}
+                  </div>
                   <div className="text-sm text-gray-600">Обслуживание</div>
                 </CardContent>
               </Card>
@@ -290,55 +329,66 @@ const Robots = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {/* Add Robot Card */}
-            <Card
-              className="cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors"
-              onClick={() => setCreateModalOpen(true)}
-            >
-              <CardContent className="flex flex-col items-center justify-center h-40 p-6">
-                <Plus className="h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-lg font-medium text-gray-600 text-center">
-                  Зарегистрировать нового робота
-                </p>
-                <p className="text-sm text-gray-500 text-center mt-2">
-                  Добавить нового робота на любой склад
-                </p>
-              </CardContent>
-            </Card>
+            {canManageRobots && (
+              <Card
+                className="cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-colors"
+                onClick={() => setCreateModalOpen(true)}
+              >
+                <CardContent className="flex flex-col items-center justify-center h-40 p-6">
+                  <Plus className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-lg font-medium text-gray-600 text-center">
+                    Зарегистрировать нового робота
+                  </p>
+                  <p className="text-sm text-gray-500 text-center mt-2">
+                    Добавить нового робота на любой склад
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Existing Robots */}
             {robots.map((robot) => (
-              <Card key={robot.id} className="hover:shadow-lg transition-shadow relative group">
+              <Card
+                key={robot.id}
+                className="hover:shadow-lg transition-shadow relative group"
+              >
                 {/* Action buttons */}
-                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
-                    onClick={() => handleEditRobot(robot)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-red-50 hover:text-red-600"
-                    onClick={() => handleDeleteClick(robot)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {canManageRobots && (
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white"
+                      onClick={() => handleEditRobot(robot)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-red-50 hover:text-red-600"
+                      onClick={() => handleDeleteClick(robot)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
 
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Bot className="h-5 w-5" />
                     {robot.code}
-                    <span className="text-lg">{getStatusIcon(robot.status)}</span>
+                    <span className="text-lg">
+                      {getStatusIcon(robot.status)}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Статус:</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(robot.status)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(robot.status)}`}
+                    >
                       {robot.status}
                     </span>
                   </div>
@@ -349,22 +399,31 @@ const Robots = () => {
                       <div className="w-16 bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
-                            robot.batteryLevel > 70 ? 'bg-green-500' :
-                            robot.batteryLevel > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                            robot.batteryLevel > 70
+                              ? "bg-green-500"
+                              : robot.batteryLevel > 30
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
                           }`}
                           style={{ width: `${robot.batteryLevel}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium w-8">{robot.batteryLevel}%</span>
+                      <span className="text-sm font-medium w-8">
+                        {robot.batteryLevel}%
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Склад:</span>
-                    <span className="text-sm font-medium">{robot.warehouseCode}</span>
+                    <span className="text-sm font-medium">
+                      {robot.warehouseCode}
+                    </span>
                   </div>
 
-                  {(robot.currentZone !== null || robot.currentRow !== null || robot.currentShelf !== null) && (
+                  {(robot.currentZone !== null ||
+                    robot.currentRow !== null ||
+                    robot.currentShelf !== null) && (
                     <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 mt-3">
                       <div className="text-center">
                         <div className="font-semibold">Зона</div>
@@ -382,7 +441,8 @@ const Robots = () => {
                   )}
 
                   <div className="text-xs text-gray-500 mt-2">
-                    Последнее обновление: {new Date(robot.lastUpdate).toLocaleString()}
+                    Последнее обновление:{" "}
+                    {new Date(robot.lastUpdate).toLocaleString()}
                   </div>
                 </CardContent>
               </Card>
@@ -395,13 +455,19 @@ const Robots = () => {
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
                 Роботы не найдены
               </h3>
-              <p className="text-gray-500 mb-6">
-                Начните работу, зарегистрировав первого робота
-              </p>
-              <Button onClick={() => setCreateModalOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Зарегистрировать первого робота
-              </Button>
+              {canManageRobots ? (
+                <>
+                  <p className="text-gray-500 mb-6">
+                    Начните работу, зарегистрировав первого робота
+                  </p>
+                  <Button onClick={() => setCreateModalOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Зарегистрировать первого робота
+                  </Button>
+                </>
+              ) : (
+                <p className="text-gray-500">Нет зарегистрированных роботов</p>
+              )}
             </div>
           )}
 
@@ -414,7 +480,7 @@ const Robots = () => {
               <p className="text-gray-500 mb-6">
                 Сначала необходимо создать склад перед регистрацией роботов
               </p>
-              <Button onClick={() => navigate('/warehouses')}>
+              <Button onClick={() => navigate("/warehouses")}>
                 <Warehouse className="mr-2 h-4 w-4" />
                 Создать склад
               </Button>
@@ -424,35 +490,41 @@ const Robots = () => {
       </div>
 
       {/* Create Robot Modal */}
-      <CreateRobotModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onRobotCreated={handleRobotCreated}
-      />
+      {canManageRobots && (
+        <CreateRobotModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onRobotCreated={handleRobotCreated}
+        />
+      )}
 
       {/* Edit Robot Modal */}
-      <EditRobotModal
-        open={editModalOpen}
-        onClose={() => {
-          setEditModalOpen(false);
-          setSelectedRobot(null);
-        }}
-        onRobotUpdated={handleRobotUpdated}
-        robot={selectedRobot}
-      />
+      {canManageRobots && (
+        <EditRobotModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedRobot(null);
+          }}
+          onRobotUpdated={handleRobotUpdated}
+          robot={selectedRobot}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-        title="Удалить робота"
-        description={`Вы уверены, что хотите удалить робота "${selectedRobot?.code}"? Это действие нельзя отменить, и все данные, связанные с этим роботом, будут безвозвратно удалены.`}
-        confirmText="Удалить робота"
-        cancelText="Отмена"
-        variant="destructive"
-        loading={deleting}
-      />
+      {canManageRobots && (
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDeleteConfirm}
+          title="Удалить робота"
+          description={`Вы уверены, что хотите удалить робота "${selectedRobot?.code}"? Это действие нельзя отменить, и все данные, связанные с этим роботом, будут безвозвратно удалены.`}
+          confirmText="Удалить робота"
+          cancelText="Отмена"
+          variant="destructive"
+          loading={deleting}
+        />
+      )}
     </div>
   );
 };

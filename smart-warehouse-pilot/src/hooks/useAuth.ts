@@ -5,6 +5,8 @@ interface AuthInfo {
   email: string;
   isAdmin: boolean;
   isWorker: boolean;
+  isStorekeeper: boolean;
+  isObserver: boolean;
 }
 
 const decodeJwt = (token: string): any => {
@@ -22,12 +24,26 @@ export const useAuth = (): AuthInfo => {
 
   return useMemo(() => {
     if (!token) {
-      return { role: "", email: "", isAdmin: false, isWorker: false };
+      return {
+        role: "",
+        email: "",
+        isAdmin: false,
+        isWorker: false,
+        isStorekeeper: false,
+        isObserver: false,
+      };
     }
 
     const decoded = decodeJwt(token);
     if (!decoded) {
-      return { role: "", email: "", isAdmin: false, isWorker: false };
+      return {
+        role: "",
+        email: "",
+        isAdmin: false,
+        isWorker: false,
+        isStorekeeper: false,
+        isObserver: false,
+      };
     }
 
     // JWT claims: role could be in "role", "ROLE_...", "roles", or "scope"
@@ -38,7 +54,12 @@ export const useAuth = (): AuthInfo => {
     if (Array.isArray(decoded.roles)) {
       const adminRole = decoded.roles.find((r: string) => r.includes("ADMIN"));
       if (adminRole) role = "ADMIN";
-      else if (decoded.roles.some((r: string) => r.includes("WAREHOUSE_WORKER"))) role = "WAREHOUSE_WORKER";
+      else if (
+        decoded.roles.some((r: string) => r.includes("WAREHOUSE_WORKER"))
+      )
+        role = "WAREHOUSE_WORKER";
+      else if (decoded.roles.some((r: string) => r.includes("VIEWER")))
+        role = "VIEWER";
     }
 
     return {
@@ -46,6 +67,8 @@ export const useAuth = (): AuthInfo => {
       email: decoded.sub || decoded.email || "",
       isAdmin: role === "ADMIN",
       isWorker: role === "WAREHOUSE_WORKER",
+      isStorekeeper: role === "WAREHOUSE_WORKER",
+      isObserver: role === "VIEWER",
     };
   }, [token]);
 };

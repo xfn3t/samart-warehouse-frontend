@@ -372,25 +372,26 @@ const WarehouseSelection = () => {
                               gridTemplateRows: `repeat(${warehouse.rowMaxSize}, 10px)`,
                             }}
                           >
-                            {Array.from({ length: warehouse.rowMaxSize }).flatMap(
-                              (_, ri) =>
-                                Array.from({ length: warehouse.zoneMaxSize }).map(
-                                  (_, zi) => {
-                                    const isExcluded =
-                                      warehouse.excludedCells?.some(
-                                        (c: ExcludedCell) =>
-                                          c.zone === zi + 1 && c.row === ri + 1,
-                                      );
-                                    if (isExcluded)
-                                      return <div key={`${zi + 1}-${ri + 1}`} />;
-                                    return (
-                                      <div
-                                        key={`${zi + 1}-${ri + 1}`}
-                                        className="bg-blue-200 rounded-sm"
-                                      />
+                            {Array.from({
+                              length: warehouse.rowMaxSize,
+                            }).flatMap((_, ri) =>
+                              Array.from({ length: warehouse.zoneMaxSize }).map(
+                                (_, zi) => {
+                                  const isExcluded =
+                                    warehouse.excludedCells?.some(
+                                      (c: ExcludedCell) =>
+                                        c.zone === zi + 1 && c.row === ri + 1,
                                     );
-                                  },
-                                ),
+                                  if (isExcluded)
+                                    return <div key={`${zi + 1}-${ri + 1}`} />;
+                                  return (
+                                    <div
+                                      key={`${zi + 1}-${ri + 1}`}
+                                      className="bg-blue-200 rounded-sm"
+                                    />
+                                  );
+                                },
+                              ),
                             )}
                           </div>
                         </div>
@@ -515,46 +516,58 @@ const WarehouseSelection = () => {
                 <h3 className="text-lg font-semibold text-gray-600 mb-2">
                   Склады не найдены
                 </h3>
-                <p className="text-gray-500 mb-6">
-                  Начните работу, создав свой первый склад
-                </p>
-                <Button onClick={() => setCreateModalOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Создать первый склад
-                </Button>
+                {isAdmin ? (
+                  <>
+                    <p className="text-gray-500 mb-6">
+                      Начните работу, создав свой первый склад
+                    </p>
+                    <Button onClick={() => setCreateModalOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Создать первый склад
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-gray-500">Нет доступных складов</p>
+                )}
               </div>
             )}
           </main>
         </div>
       </div>
 
-      <CreateWarehouseModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onWarehouseCreated={handleWarehouseCreated}
-      />
+      {isAdmin && (
+        <CreateWarehouseModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onWarehouseCreated={handleWarehouseCreated}
+        />
+      )}
 
-      <EditWarehouseModal
-        open={editModalOpen}
-        onClose={() => {
-          setEditModalOpen(false);
-          setSelectedWarehouse(null);
-        }}
-        onWarehouseUpdated={handleWarehouseUpdated}
-        warehouse={selectedWarehouse}
-      />
+      {isAdmin && (
+        <EditWarehouseModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedWarehouse(null);
+          }}
+          onWarehouseUpdated={handleWarehouseUpdated}
+          warehouse={selectedWarehouse}
+        />
+      )}
 
-      <ConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-        title="Удалить склад"
-        description={`Вы уверены, что хотите удалить склад "${selectedWarehouse?.name}" (${selectedWarehouse?.code})? Это действие нельзя отменить, и все данные, связанные с этим складом, будут безвозвратно удалены.`}
-        confirmText="Удалить склад"
-        cancelText="Отмена"
-        variant="destructive"
-        loading={deleting}
-      />
+      {isAdmin && (
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDeleteConfirm}
+          title="Удалить склад"
+          description={`Вы уверены, что хотите удалить склад "${selectedWarehouse?.name}" (${selectedWarehouse?.code})? Это действие нельзя отменить, и все данные, связанные с этим складом, будут безвозвратно удалены.`}
+          confirmText="Удалить склад"
+          cancelText="Отмена"
+          variant="destructive"
+          loading={deleting}
+        />
+      )}
     </>
   );
 };
