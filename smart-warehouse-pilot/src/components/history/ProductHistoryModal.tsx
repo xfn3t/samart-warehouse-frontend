@@ -570,7 +570,7 @@ const ProductHistoryModal = ({
                 <Button
                   key={agg}
                   size="sm"
-                  variant={aggregation === agg ? "default" : "outline"}
+                  variant={aggregation       === agg ? "default" : "outline"}
                   onClick={() => setAggregation(agg)}
                 >
                   {agg === "hour"
