@@ -2,6 +2,7 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface WebSocketMessage {
   type: string;
@@ -85,7 +86,9 @@ export const useWebSocket = ({
 
     reconnectAttemptsRef.current = 0;
 
-    const createSockJS = () => new SockJS("http://localhost:8080/ws");
+    const wsBaseUrl = apiBaseUrl.replace(/\/api$/, "");
+
+    const createSockJS = () => new SockJS(`${wsBaseUrl}/ws`);
 
     const client = new Client({
       webSocketFactory: createSockJS,

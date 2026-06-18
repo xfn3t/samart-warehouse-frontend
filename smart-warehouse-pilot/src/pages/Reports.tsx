@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Download, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 import AppSidebar from "@/components/AppSidebar";
 
 interface ReportMetadataDTO {
@@ -32,7 +33,7 @@ const Reports = () => {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/reports/user", {
+      const res = await fetch(apiBaseUrl + "/reports/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setReports(await res.json());
@@ -50,7 +51,7 @@ const Reports = () => {
   ) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/reports/download/${reportUid}`,
+        apiBaseUrl + `/reports/download/${reportUid}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },

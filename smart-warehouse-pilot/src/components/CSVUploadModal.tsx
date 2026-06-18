@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface CSVUploadModalProps {
   open: boolean;
@@ -91,7 +92,7 @@ const CSVUploadModal = ({
       // Make the actual API call with proper multipart/form-data
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8080/api/${warehouseCode}/inventory/import/csv`,
+        `${apiBaseUrl}/${warehouseCode}/inventory/import/csv`,
         {
           method: "POST",
           headers: {

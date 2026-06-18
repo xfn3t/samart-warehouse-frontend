@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LogOut, Package, Search, ImageOff, MapPin } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface ProductOnWarehouse {
   skuCode: string;
@@ -38,7 +39,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/products/on-warehouses", {
+      const res = await fetch(apiBaseUrl + "/products/on-warehouses", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setProducts(await res.json());
@@ -48,7 +49,7 @@ const Products = () => {
 
   const loadImage = (skuCode: string, imageUrl: string) => {
     if (imageCache[skuCode] || !imageUrl) return;
-    const url = imageUrl.startsWith("http") ? imageUrl : `http://localhost:8080/api/images/${imageUrl.split("/").pop()}`;
+    const url = imageUrl.startsWith("http") ? imageUrl : apiBaseUrl + `/images/${imageUrl.split("/").pop()}`;
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.blob())
       .then((b) => setImageCache((prev) => ({ ...prev, [skuCode]: URL.createObjectURL(b) })))

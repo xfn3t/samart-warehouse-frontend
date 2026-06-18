@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Warehouse } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface EditWarehouseModalProps {
@@ -196,7 +197,7 @@ const EditWarehouseModal = ({
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/warehouse/${warehouse.code}`,
+        apiBaseUrl + `/warehouse/${warehouse.code}`,
         {
           method: "PUT",
           headers: {

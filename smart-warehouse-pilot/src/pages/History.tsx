@@ -11,7 +11,7 @@ import StockDepletionForecast from "@/components/dashboard/StockDepletionForecas
 import ReplenishmentNeeds from "@/components/dashboard/ReplenishmentNeeds";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api";
+import { apiClient, apiBaseUrl } from "@/lib/api";
 
 interface HistorySummaryDTO {
   total: number;
@@ -67,20 +67,20 @@ const History = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
       if (selected.length > 0) {
-        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel/by-skus`;
+        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/excel/by-skus`;
         opts.method = "POST";
         (opts.headers as Record<string, string>)["Content-Type"] =
           "application/json";
         opts.body = JSON.stringify(selected);
       } else {
-        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/excel`;
+        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/excel`;
       }
       const res = await fetch(url, opts);
       if (res.ok) {
         const data = await res.json();
         if (data.reportUid) {
           const dl = await fetch(
-            `http://localhost:8080/api/reports/download/${data.reportUid}`,
+            apiBaseUrl + `/reports/download/${data.reportUid}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           if (dl.ok) {
@@ -113,13 +113,13 @@ const History = () => {
       };
 
       if (selected.length > 0) {
-        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf/by-skus`;
+        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/pdf/by-skus`;
         options.method = "POST";
         (options.headers as Record<string, string>)["Content-Type"] =
           "application/json";
         options.body = JSON.stringify(selected);
       } else {
-        url = `http://localhost:8080/api/reports/warehouses/${warehouseCode}/pdf`;
+        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/pdf`;
       }
 
       const response = await fetch(url, options);

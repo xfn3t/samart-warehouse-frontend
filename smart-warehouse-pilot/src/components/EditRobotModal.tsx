@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Bot } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface EditRobotModalProps {
   open: boolean;
@@ -62,7 +63,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/warehouse', {
+      const response = await fetch('${apiBaseUrl}/warehouse', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -154,7 +155,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/robots/${robot.code}`, {
+      const response = await fetch(apiBaseUrl + `/robots/${robot.code}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

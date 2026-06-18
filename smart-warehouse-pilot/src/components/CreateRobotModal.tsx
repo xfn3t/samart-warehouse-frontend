@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Bot } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface CreateRobotModalProps {
   open: boolean;
@@ -52,7 +53,7 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/warehouse', {
+      const response = await fetch('${apiBaseUrl}/warehouse', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -144,7 +145,7 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/robots/register', {
+      const response = await fetch('${apiBaseUrl}/robots/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

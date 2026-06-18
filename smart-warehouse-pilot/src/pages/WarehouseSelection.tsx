@@ -18,6 +18,7 @@ import {
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 import CreateWarehouseModal from "@/components/CreateWarehouseModal";
 import EditWarehouseModal from "@/components/EditWarehouseModal";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
@@ -87,7 +88,7 @@ const WarehouseSelection = () => {
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/warehouse", {
+      const response = await fetch(apiBaseUrl + "/warehouse", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -122,7 +123,7 @@ const WarehouseSelection = () => {
       for (const warehouse of warehouses) {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/dashboard/warehouses/${warehouse.code}/stats`,
+            apiBaseUrl + `/dashboard/warehouses/${warehouse.code}/stats`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -190,7 +191,7 @@ const WarehouseSelection = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8080/api/warehouse/${selectedWarehouse.code}`,
+        apiBaseUrl + `/warehouse/${selectedWarehouse.code}`,
         {
           method: "DELETE",
           headers: {

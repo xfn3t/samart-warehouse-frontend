@@ -31,6 +31,7 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 interface UserDTO {
   id: number;
@@ -94,7 +95,7 @@ const UsersPage = () => {
       for (const wh of warehouses) {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/${wh.code}/users`,
+            apiBaseUrl + `/${wh.code}/users`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (response.ok) {
@@ -117,7 +118,7 @@ const UsersPage = () => {
 
   const fetchWarehouses = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/warehouse", {
+      const response = await fetch(apiBaseUrl + "/warehouse", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -152,7 +153,7 @@ const UsersPage = () => {
     setSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/${selectedWarehouse}/users/register`,
+        apiBaseUrl + `/${selectedWarehouse}/users/register`,
         {
           method: "POST",
           headers: {

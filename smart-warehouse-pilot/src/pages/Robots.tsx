@@ -16,6 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 import CreateRobotModal from "@/components/CreateRobotModal";
 import EditRobotModal from "@/components/EditRobotModal";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
@@ -65,7 +66,7 @@ const Robots = () => {
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/warehouse", {
+      const response = await fetch(apiBaseUrl + "/warehouse", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -92,7 +93,7 @@ const Robots = () => {
       for (const warehouse of warehouses) {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/robots/warehouse/${warehouse.code}`,
+            apiBaseUrl + `/robots/warehouse/${warehouse.code}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -161,7 +162,7 @@ const Robots = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8080/api/robots/${selectedRobot.code}`,
+        apiBaseUrl + `/robots/${selectedRobot.code}`,
         {
           method: "DELETE",
           headers: {

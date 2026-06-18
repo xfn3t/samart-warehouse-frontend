@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { Loader2, ImageOff, Camera, Check, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api";
+import { apiClient, apiBaseUrl } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
 // ---- types ----
@@ -102,7 +102,7 @@ const ProductHistoryModal = ({
     setDescriptionDraft(productInfo.description || "");
     setCategoryDraft(productInfo.category || "");
     if (productInfo.imageUrl) {
-      const url = `http://localhost:8080/api/images/upload/${encodeURIComponent(productCode)}`;
+      const url = apiBaseUrl + `/images/upload/${encodeURIComponent(productCode)}`;
       fetch(url, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
@@ -140,7 +140,7 @@ const ProductHistoryModal = ({
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch(
-        `http://localhost:8080/api/images/upload/${encodeURIComponent(productCode)}`,
+        apiBaseUrl + `/images/upload/${encodeURIComponent(productCode)}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -171,7 +171,7 @@ const ProductHistoryModal = ({
       if (productInfo?.name) body.name = productInfo.name;
       if (productInfo?.category) body.category = productInfo.category;
       const res = await fetch(
-        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        apiBaseUrl + `/products/${encodeURIComponent(productCode)}`,
         {
           method: "PUT",
           headers: {
@@ -197,7 +197,7 @@ const ProductHistoryModal = ({
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/products/categories", {
+      const res = await fetch(apiBaseUrl + "/products/categories", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.ok) setCategories(await res.json());
@@ -208,7 +208,7 @@ const ProductHistoryModal = ({
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        apiBaseUrl + `/products/${encodeURIComponent(productCode)}`,
         {
           method: "PUT",
           headers: {
@@ -236,7 +236,7 @@ const ProductHistoryModal = ({
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:8080/api/products/${encodeURIComponent(productCode)}`,
+        apiBaseUrl + `/products/${encodeURIComponent(productCode)}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

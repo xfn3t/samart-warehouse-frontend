@@ -22,7 +22,7 @@ import {
   ImageOff,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiClient } from "@/lib/api";
+import { apiClient, apiBaseUrl } from "@/lib/api";
 import ProductHistoryModal from "./ProductHistoryModal";
 
 interface DataRow {
@@ -82,7 +82,7 @@ const DataTable = ({
     const token = localStorage.getItem("token");
     const url = imageUrl.startsWith("http")
       ? imageUrl
-      : `http://localhost:8080/api/images/${imageUrl.split("/").pop()}`;
+      : apiBaseUrl + `/images/${imageUrl.split("/").pop()}`;
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.blob())
       .then((b) =>

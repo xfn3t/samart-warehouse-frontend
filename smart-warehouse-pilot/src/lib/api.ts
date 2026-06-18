@@ -1,10 +1,12 @@
+import { API_BASE_URL } from "@/config";
+export const apiBaseUrl = API_BASE_URL;
 ﻿import { toast } from "sonner";
 
 class ApiClient {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = "http://localhost:8080/api";
+    this.baseURL = API_BASE_URL;
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {

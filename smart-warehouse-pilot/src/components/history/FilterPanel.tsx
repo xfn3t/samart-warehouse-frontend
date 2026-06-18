@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { apiClient } from "@/lib/api";
+import { apiClient, apiBaseUrl } from "@/lib/api";
 
 interface FilterPanelProps {
   warehouseCode: string;
@@ -52,7 +52,7 @@ const FilterPanel = ({ warehouseCode, onFilterChange }: FilterPanelProps) => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/products/categories", {
+      const res = await fetch(apiBaseUrl + "/products/categories", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
