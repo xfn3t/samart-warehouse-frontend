@@ -17,12 +17,17 @@ interface AIPredictionsProps {
 
 interface Prediction {
   sku: string;
-  days_until_stockout: number;
-  recommended_order: number;
-  confidence_score: number;
-  critical_level: "CRITICAL" | "MEDIUM" | "OK";
-  warehouse_code: string;
-  last_updated: number;
+  daysUntilStockout: number;
+  recommendedOrder: number;
+  confidenceScore: number;
+  criticalLevel: "CRITICAL" | "MEDIUM" | "OK";
+  warehouseCode: string;
+  lastUpdated: number;
+  quantity?: number;
+  expectedQuantity?: number;
+  difference?: number;
+  minStock?: number;
+  optimalStock?: number;
 }
 
 const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
@@ -34,9 +39,11 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
   const fetchCriticalPredictions = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await apiClient.get(`/${warehouseCode}/predict/criticality/critical`);
+      const result = await apiClient.get(
+        `/${warehouseCode}/predict/criticality`,
+      );
       if (result?.status === "ok") {
-        setPredictions(result.predictions || []);
+        setPredictions(result.data?.CRITICAL || []);
         setLastUpdated(Date.now());
       } else {
         setPredictions([]);
@@ -53,7 +60,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
   const fetchAllPredictions = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await apiClient.get(`/${warehouseCode}/predict/criticality`);
+      const result = await apiClient.get(
+        `/${warehouseCode}/predict/criticality`,
+      );
       if (result?.status === "ok") {
         setPredictions(result.data?.CRITICAL || []);
         setLastUpdated(Date.now());
@@ -119,7 +128,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
 
   // Этот компонент отображает ТОЛЬКО критические прогнозы
   const criticalPredictions = predictions.filter(
-    (p) => p.critical_level === "CRITICAL",
+    (p) => p.criticalLevel === "CRITICAL",
   );
 
   return (
@@ -193,9 +202,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
         ) : (
           criticalPredictions.map((prediction) => {
             const depletionDate = getDepletionDate(
-              prediction.days_until_stockout,
+              prediction.daysUntilStockout,
             );
-            const styles = getCriticalityStyles(prediction.critical_level);
+            const styles = getCriticalityStyles(prediction.criticalLevel);
 
             return (
               <div
@@ -204,7 +213,7 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    {getCriticalityIcon(prediction.critical_level)}
+                    {getCriticalityIcon(prediction.criticalLevel)}
                     <div>
                       <h4 className="font-semibold">{prediction.sku}</h4>
                       <p className="text-xs opacity-75">Артикул</p>
@@ -212,9 +221,9 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-semibold">
-                      {prediction.days_until_stockout <= 0
+                      {prediction.daysUntilStockout <= 0
                         ? "НЕТ В НАЛИЧИИ"
-                        : `${Math.round(prediction.days_until_stockout)} дн.`}
+                        : `${Math.round(prediction.daysUntilStockout)} дн.`}
                     </span>
                     <p className="text-xs opacity-75">до исчерпания</p>
                   </div>
@@ -228,22 +237,22 @@ const AIPredictions = ({ warehouseCode }: AIPredictionsProps) => {
                   <div>
                     <p className="opacity-75 mb-1">Рек. заказ</p>
                     <p className="font-semibold">
-                      {Math.round(prediction.recommended_order)}
+                      {Math.round(prediction.recommendedOrder)}
                     </p>
                   </div>
                   <div>
                     <p className="opacity-75 mb-1">Уверенность</p>
                     <p className="font-semibold">
-                      {Math.round(prediction.confidence_score * 100)}%
+                      {Math.round(prediction.confidenceScore * 100)}%
                     </p>
                   </div>
                 </div>
 
-                {prediction.last_updated && (
+                {prediction.lastUpdated && (
                   <div className="mt-2 pt-2 border-t border-opacity-20">
                     <p className="text-xs opacity-60">
                       Обновлено:{" "}
-                      {new Date(prediction.last_updated).toLocaleTimeString(
+                      {new Date(prediction.lastUpdated).toLocaleTimeString(
                         "ru-RU",
                       )}
                     </p>

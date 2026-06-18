@@ -11,20 +11,87 @@ import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
+const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem("token");
+};
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
 const App = () => (
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/warehouses" element={<WarehouseSelection />} />
-      <Route path="/robots" element={<Robots />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/reports/:warehouseCode" element={<WarehouseReports />} />
-      <Route path="/dashboard/:warehouseCode" element={<Dashboard />} />
-      <Route path="/history/:warehouseCode" element={<History />} />
+      <Route
+        path="/warehouses"
+        element={
+          <ProtectedRoute>
+            <WarehouseSelection />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/robots"
+        element={
+          <ProtectedRoute>
+            <Robots />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/products"
+        element={
+          <ProtectedRoute>
+            <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/:warehouseCode"
+        element={
+          <ProtectedRoute>
+            <WarehouseReports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/:warehouseCode"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history/:warehouseCode"
+        element={
+          <ProtectedRoute>
+            <History />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>

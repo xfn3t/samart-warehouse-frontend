@@ -14,16 +14,43 @@ const Register = () => {
     name: "",
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    name?: string;
+  }>({});
+
+  const validate = (): boolean => {
+    const newErrors: { email?: string; password?: string; name?: string } = {};
+    if (!formData.name.trim()) {
+      newErrors.name = "Введите имя";
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = "Введите email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Некорректный email";
+    }
+    if (!formData.password) {
+      newErrors.password = "Введите пароль";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Пароль должен быть не менее 6 символов";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+    setErrors({});
     setLoading(true);
 
     try {
@@ -62,39 +89,51 @@ const Register = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="text"
-              name="name"
-              placeholder="Полное имя"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={loading}
-              className="h-11"
-              required
-            />
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div className="space-y-1">
+              <Input
+                type="text"
+                name="name"
+                placeholder="Полное имя"
+                value={formData.name}
+                onChange={handleChange}
+                disabled={loading}
+                className={`h-11 ${errors.name ? "border-destructive" : ""}`}
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
+            </div>
 
-            <Input
-              type="email"
-              name="email"
-              placeholder="Электронная почта"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={loading}
-              className="h-11"
-              required
-            />
+            <div className="space-y-1">
+              <Input
+                type="email"
+                name="email"
+                placeholder="Электронная почта"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={loading}
+                className={`h-11 ${errors.email ? "border-destructive" : ""}`}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
 
-            <Input
-              type="password"
-              name="password"
-              placeholder="Пароль"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={loading}
-              className="h-11"
-              required
-            />
+            <div className="space-y-1">
+              <Input
+                type="password"
+                name="password"
+                placeholder="Пароль"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                className={`h-11 ${errors.password ? "border-destructive" : ""}`}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
+            </div>
 
             <Button type="submit" className="w-full h-11" disabled={loading}>
               {loading ? (

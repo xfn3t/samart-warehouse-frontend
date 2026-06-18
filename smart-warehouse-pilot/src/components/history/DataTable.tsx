@@ -302,7 +302,6 @@ const DataTable = ({
             variant="outline"
             size="sm"
             onClick={() => onExportExcel(selectedProducts)}
-            disabled={selectedProducts.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
             Excel
@@ -311,7 +310,6 @@ const DataTable = ({
             variant="outline"
             size="sm"
             onClick={() => onExportPDF(selectedProducts)}
-            disabled={selectedProducts.length === 0}
           >
             <FileText className="h-4 w-4 mr-2" />
             PDF
@@ -437,64 +435,72 @@ const DataTable = ({
         </div>
       ) : (
         <>
-        <div className="flex items-center gap-2 mb-2">
-          <Checkbox
-            checked={selectedProducts.length === data.items.length && data.items.length > 0}
-            onCheckedChange={handleSelectAll}
-          />
-          <span className="text-sm text-muted-foreground">Выбрать все ({selectedProducts.length}/{data.items.length})</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {data.items.map((row) => {
-            if (row.imageUrl && !imageCache[row.productCode])
-              loadImage(row.productCode, row.imageUrl);
-            return (
-              <Card
-                key={row.productCode}
-                className="cursor-pointer hover:shadow-md transition-shadow relative"
-                onClick={() => handleProductClick(row.productCode)}
-              >
-                <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedProducts.includes(row.productCode)}
-                    onCheckedChange={() => handleSelectRow(row.productCode)}
-                  />
-                </div>
-                <div className="h-36 bg-muted flex items-center justify-center rounded-t-lg overflow-hidden">
-                  {imageCache[row.productCode] ? (
-                    <img
-                      src={imageCache[row.productCode]}
-                      alt={row.productName}
-                      className="w-full h-full object-cover"
+          <div className="flex items-center gap-2 mb-2">
+            <Checkbox
+              checked={
+                selectedProducts.length === data.items.length &&
+                data.items.length > 0
+              }
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm text-muted-foreground">
+              Выбрать все ({selectedProducts.length}/{data.items.length})
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {data.items.map((row) => {
+              if (row.imageUrl && !imageCache[row.productCode])
+                loadImage(row.productCode, row.imageUrl);
+              return (
+                <Card
+                  key={row.productCode}
+                  className="cursor-pointer hover:shadow-md transition-shadow relative"
+                  onClick={() => handleProductClick(row.productCode)}
+                >
+                  <div
+                    className="absolute top-2 left-2 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={selectedProducts.includes(row.productCode)}
+                      onCheckedChange={() => handleSelectRow(row.productCode)}
                     />
-                  ) : (
-                    <ImageOff className="h-8 w-8 text-muted-foreground" />
-                  )}
-                </div>
-                <CardContent className="p-3 space-y-1">
-                  <p className="font-medium text-sm truncate">
-                    {row.productName}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {row.productCode}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    {getStatusBadge(row.statusCode)}
-                    <span className="text-xs text-muted-foreground">
-                      {row.difference > 0 ? "+" : ""}
-                      {row.difference ?? 0}
-                    </span>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-          {data.items.length === 0 && (
-            <div className="col-span-full text-center py-8 text-muted-foreground">
-              Нет данных
-            </div>
-          )}
-        </div>
+                  <div className="h-36 bg-muted flex items-center justify-center rounded-t-lg overflow-hidden">
+                    {imageCache[row.productCode] ? (
+                      <img
+                        src={imageCache[row.productCode]}
+                        alt={row.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ImageOff className="h-8 w-8 text-muted-foreground" />
+                    )}
+                  </div>
+                  <CardContent className="p-3 space-y-1">
+                    <p className="font-medium text-sm truncate">
+                      {row.productName}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {row.productCode}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      {getStatusBadge(row.statusCode)}
+                      <span className="text-xs text-muted-foreground">
+                        {row.difference > 0 ? "+" : ""}
+                        {row.difference ?? 0}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {data.items.length === 0 && (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                Нет данных
+              </div>
+            )}
+          </div>
         </>
       )}
 

@@ -191,10 +191,6 @@ const CSVUploadModal = ({
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Формат: CSV с разделителем ";"</li>
               <li>Кодировка: UTF-8</li>
-              <li>
-                Обязательные колонки: product_id, product_name, quantity, zone,
-                date
-              </li>
               <li>Максимальный размер: 10MB</li>
             </ul>
           </div>

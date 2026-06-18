@@ -11,9 +11,28 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
+
+  const validate = (): boolean => {
+    const newErrors: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      newErrors.email = "Введите email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Некорректный email";
+    }
+    if (!password) {
+      newErrors.password = "Введите пароль";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+    setErrors({});
     setLoading(true);
 
     try {
@@ -28,6 +47,17 @@ const Login = () => {
     }
   };
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (errors.password)
+      setErrors((prev) => ({ ...prev, password: undefined }));
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8">
@@ -37,24 +67,34 @@ const Login = () => {
             <p className="text-gray-600">Система управления складом</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="email"
-              placeholder="Электронная почта"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              className="h-11"
-            />
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div className="space-y-1">
+              <Input
+                type="email"
+                placeholder="Электронная почта"
+                value={email}
+                onChange={handleEmailChange}
+                disabled={loading}
+                className={`h-11 ${errors.email ? "border-destructive" : ""}`}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
 
-            <Input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              className="h-11"
-            />
+            <div className="space-y-1">
+              <Input
+                type="password"
+                placeholder="Пароль"
+                value={password}
+                onChange={handlePasswordChange}
+                disabled={loading}
+                className={`h-11 ${errors.password ? "border-destructive" : ""}`}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
+            </div>
 
             <Button type="submit" className="w-full h-11" disabled={loading}>
               {loading ? (
