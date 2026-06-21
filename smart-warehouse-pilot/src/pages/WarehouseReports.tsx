@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { apiBaseUrl } from "@/lib/api";
+
 
 interface ReportMetadataDTO {
   reportUid: string;
@@ -32,7 +32,7 @@ const WarehouseReports = () => {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch(apiBaseUrl + `/reports/warehouses/${warehouseCode}/reports`, {
+      const res = await fetch(`http://localhost:8080/api/reports/warehouses/${warehouseCode}/reports`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setReports(await res.json());
@@ -42,7 +42,7 @@ const WarehouseReports = () => {
 
   const handleDownload = async (reportUid: string) => {
     try {
-      const res = await fetch(apiBaseUrl + `/reports/download/${reportUid}`, {
+      const res = await fetch(`http://localhost:8080/api/reports/download/${reportUid}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

@@ -11,7 +11,7 @@ import StockDepletionForecast from "@/components/dashboard/StockDepletionForecas
 import ReplenishmentNeeds from "@/components/dashboard/ReplenishmentNeeds";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { apiClient, apiBaseUrl } from "@/lib/api";
+import { apiClient } from "@/lib/api";
 
 interface HistorySummaryDTO {
   total: number;
@@ -19,6 +19,8 @@ interface HistorySummaryDTO {
   discrepancies: number;
   avgZoneScanMinutes: number;
 }
+
+const API_BASE = "http://localhost:8080/api";
 
 const History = () => {
   const navigate = useNavigate();
@@ -59,36 +61,48 @@ const History = () => {
     toast.success("Фильтры применены");
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const handleExportExcel = async (selected: string[]) => {
     try {
       const token = localStorage.getItem("token");
-      let url;
+      let url: string;
       const opts: RequestInit = {
         headers: { Authorization: `Bearer ${token}` },
       };
       if (selected.length > 0) {
-        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/excel/by-skus`;
+        url = `${API_BASE}/reports/warehouses/${warehouseCode}/excel/by-skus`;
         opts.method = "POST";
         (opts.headers as Record<string, string>)["Content-Type"] =
           "application/json";
         opts.body = JSON.stringify(selected);
       } else {
-        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/excel`;
+        url = `${API_BASE}/reports/warehouses/${warehouseCode}/excel`;
       }
+
       const res = await fetch(url, opts);
       if (res.ok) {
         const data = await res.json();
         if (data.reportUid) {
           const dl = await fetch(
-            apiBaseUrl + `/reports/download/${data.reportUid}`,
+            `${API_BASE}/reports/download/${data.reportUid}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           if (dl.ok) {
             const blob = await dl.blob();
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.xlsx`;
-            a.click();
+            downloadBlob(
+              blob,
+              `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.xlsx`,
+            );
             toast.success(
               selected.length > 0
                 ? `Excel-отчёт по ${selected.length} товарам скачан`
@@ -113,29 +127,43 @@ const History = () => {
       };
 
       if (selected.length > 0) {
-        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/pdf/by-skus`;
+        url = `${API_BASE}/reports/warehouses/${warehouseCode}/pdf/by-skus`;
         options.method = "POST";
         (options.headers as Record<string, string>)["Content-Type"] =
           "application/json";
         options.body = JSON.stringify(selected);
       } else {
-        url = apiBaseUrl + `/reports/warehouses/${warehouseCode}/pdf`;
+        url = `${API_BASE}/reports/warehouses/${warehouseCode}/pdf`;
       }
 
-      const response = await fetch(url, options);
-      if (response.ok) {
-        const blob = await response.blob();
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        a.download = `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.pdf`;
-        a.click();
-        URL.revokeObjectURL(downloadUrl);
-        toast.success(
-          selected.length > 0
-            ? `PDF-отчёт по ${selected.length} товарам скачан`
-            : "Полный PDF-отчёт скачан",
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        toast.error("Не удалось сформировать отчёт");
+        return;
+      }
+
+      const data = await res.json();
+
+      // if backend returns reportUid — download via /reports/download/{uid}
+      if (data.reportUid) {
+        const dl = await fetch(
+          `${API_BASE}/reports/download/${data.reportUid}`,
+          { headers: { Authorization: `Bearer ${token}` } },
         );
+        if (dl.ok) {
+          const blob = await dl.blob();
+          downloadBlob(
+            blob,
+            `report-${warehouseCode}-${new Date().toISOString().slice(0, 10)}.pdf`,
+          );
+          toast.success(
+            selected.length > 0
+              ? `PDF-отчёт по ${selected.length} товарам скачан`
+              : "Полный PDF-отчёт скачан",
+          );
+        } else {
+          toast.error("Не удалось скачать отчёт");
+        }
       } else {
         toast.error("Не удалось сформировать отчёт");
       }
@@ -248,7 +276,6 @@ const History = () => {
           selectedProducts={selectedProducts}
         />
 
-        {/* График остатков по выбранным товарам */}
         <SelectedProductsTrendChart
           warehouseCode={warehouseCode}
           selectedProducts={selectedProducts}

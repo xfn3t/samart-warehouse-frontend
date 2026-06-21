@@ -53,7 +53,7 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${apiBaseUrl}/warehouse', {
+      const response = await fetch(apiBaseUrl + '/warehouse', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -145,7 +145,7 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${apiBaseUrl}/robots/register', {
+      const response = await fetch(apiBaseUrl + '/robots/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

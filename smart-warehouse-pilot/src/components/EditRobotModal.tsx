@@ -63,7 +63,7 @@ const EditRobotModal = ({ open, onClose, onRobotUpdated, robot }: EditRobotModal
   const fetchWarehouses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${apiBaseUrl}/warehouse', {
+      const response = await fetch(apiBaseUrl + '/warehouse', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

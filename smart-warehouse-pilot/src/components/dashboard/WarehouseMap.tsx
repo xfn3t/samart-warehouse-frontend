@@ -33,6 +33,7 @@ interface Warehouse {
   rowMaxSize: number;
   shelfMaxSize: number;
   location: string;
+  excludedCells?: { zone: number; row: number }[];
 }
 
 interface Location {
@@ -235,7 +236,8 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
     if (mins == null || isNaN(mins)) return "Нет данных";
     if (mins < 60) return `${Math.round(mins)} мин. назад`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${russianPlural(hours, "час", "часа", "часов")} назад`;
+    if (hours < 24)
+      return `${russianPlural(hours, "час", "часа", "часов")} назад`;
     const days = Math.floor(hours / 24);
     return `${russianPlural(days, "день", "дня", "дней")} назад`;
   };
@@ -333,15 +335,24 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                 gridTemplateRows: `repeat(${warehouse.rowMaxSize}, ${CELL_SIZE}px)`,
               }}
             >
-              {Array.from({ length: warehouse.rowMaxSize }).map((_, rowIdx) =>
-                Array.from({ length: warehouse.zoneMaxSize }).map(
+              {Array.from({ length: warehouse.rowMaxSize }).flatMap((_, rowIdx) =>
+                Array.from({ length: warehouse.zoneMaxSize }).flatMap(
                   (_, zoneIdx) => {
                     const zone = zoneIdx + 1;
                     const row = rowIdx + 1;
+                    const isExcluded = warehouse.excludedCells?.some(
+                      (c) => c.zone === zone && c.row === row
+                    );
+                    if (isExcluded) return [(
+                      <div
+                        key={`${zone}-${row}`}
+                        style={{ width: CELL_SIZE, height: CELL_SIZE }}
+                      />
+                    )];
                     const location = getLocationAt(zone, row);
                     const robot = getRobotAt(zone, row);
 
-                    return (
+                    return [(
                       <Tooltip key={`${zone}-${row}`}>
                         <TooltipTrigger asChild>
                           <div
@@ -440,7 +451,7 @@ const WarehouseMap = ({ warehouseCode }: WarehouseMapProps) => {
                           )}
                         </TooltipContent>
                       </Tooltip>
-                    );
+                    )];
                   },
                 ),
               )}

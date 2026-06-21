@@ -58,6 +58,7 @@ interface Props {
   productCodes: string[];
   open: boolean;
   onClose: () => void;
+  onProductChanged?: () => void;
 }
 
 const ProductHistoryModal = ({
@@ -65,6 +66,7 @@ const ProductHistoryModal = ({
   productCodes,
   open,
   onClose,
+  onProductChanged,
 }: Props) => {
   const { isObserver } = useAuth();
   const [historyData, setHistoryData] = useState<ProductHistoryResponse[]>([]);
@@ -102,7 +104,8 @@ const ProductHistoryModal = ({
     setDescriptionDraft(productInfo.description || "");
     setCategoryDraft(productInfo.category || "");
     if (productInfo.imageUrl) {
-      const url = apiBaseUrl + `/images/upload/${encodeURIComponent(productCode)}`;
+      const url =
+        apiBaseUrl + `/images/upload/${encodeURIComponent(productCode)}`;
       fetch(url, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
@@ -231,22 +234,25 @@ const ProductHistoryModal = ({
   };
 
   const handleDeleteProduct = async () => {
-    if (!confirm(`Удалить товар ${productCode}?`)) return;
+    if (!confirm(`Снять товар ${productCode} со склада ${warehouseCode}?`))
+      return;
     setDeleting(true);
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        apiBaseUrl + `/products/${encodeURIComponent(productCode)}`,
+        apiBaseUrl +
+          `/products/warehouses/${warehouseCode}/${encodeURIComponent(productCode)}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         },
       );
       if (res.ok) {
-        toast.success("Товар удалён");
+        toast.success("Товар снят со склада");
+        onProductChanged?.();
         onClose();
       } else {
-        toast.error("Не удалось удалить товар");
+        toast.error("Не удалось снять товар со склада");
       }
     } catch {
       toast.error("Ошибка");
@@ -343,26 +349,26 @@ const ProductHistoryModal = ({
                     </div>
                   )}
                   {!isObserver && (
-                  <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    {uploadingImage ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-white" />
-                    ) : (
-                      <div className="flex flex-col items-center gap-1 text-white">
-                        <Camera className="h-8 w-8" />
-                        <span className="text-xs font-medium">
-                          {productInfo?.imageUrl ? "Сменить" : "Загрузить"}
-                        </span>
-                      </div>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                    />
-                  </label>
+                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      {uploadingImage ? (
+                        <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-white">
+                          <Camera className="h-8 w-8" />
+                          <span className="text-xs font-medium">
+                            {productInfo?.imageUrl ? "Сменить" : "Загрузить"}
+                          </span>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                      />
+                    </label>
                   )}
                 </div>
 
@@ -384,7 +390,7 @@ const ProductHistoryModal = ({
                         {deleting ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-1" />
                         ) : null}
-                        Удалить товар
+                        Снять со склада
                       </Button>
                     )}
                   </div>
@@ -422,14 +428,15 @@ const ProductHistoryModal = ({
                           <p className="font-semibold">
                             {productInfo?.category || "—"}
                           </p>
-                          {!isObserver && (<Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                            onClick={() => setEditingCategory(true)}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
+                          {!isObserver && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                              onClick={() => setEditingCategory(true)}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
                           )}
                         </div>
                       )}

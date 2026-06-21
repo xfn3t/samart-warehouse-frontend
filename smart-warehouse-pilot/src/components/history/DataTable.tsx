@@ -537,6 +537,7 @@ const DataTable = ({
           productCodes={selectedProductsModal}
           open={selectedProductsModal.length > 0}
           onClose={() => setSelectedProductsModal([])}
+          onProductChanged={() => fetchData()}
         />
       )}
     </div>
