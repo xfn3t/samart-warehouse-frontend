@@ -18,6 +18,10 @@ interface Warehouse {
   id: number;
   code: string;
   name: string;
+  zoneMaxSize: number;
+  rowMaxSize: number;
+  shelfMaxSize: number;
+  excludedCells?: { zone: number; row: number }[];
 }
 
 interface RobotFormData {
@@ -97,6 +101,8 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
   };
 
   const validateForm = (): boolean => {
+    const selectedWarehouse = warehouses.find((w) => w.code === formData.warehouseCode);
+    console.log("validateForm", { whCode: formData.warehouseCode, selectedWarehouse, zone: formData.currentZone, row: formData.currentRow, excludedCells: selectedWarehouse?.excludedCells });
     const newErrors: Record<string, string> = {};
 
     if (!formData.code) {
@@ -125,6 +131,27 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
       newErrors.currentShelf = "Полка не может быть отрицательной";
     }
 
+    if (selectedWarehouse) {
+      if (formData.currentZone > selectedWarehouse.zoneMaxSize) {
+        newErrors.currentZone = `Зона не может превышать ${selectedWarehouse.zoneMaxSize}`;
+      }
+      if (formData.currentRow > selectedWarehouse.rowMaxSize) {
+        newErrors.currentRow = `Ряд не может превышать ${selectedWarehouse.rowMaxSize}`;
+      }
+      if (formData.currentShelf > selectedWarehouse.shelfMaxSize) {
+        newErrors.currentShelf = `Полка не может превышать ${selectedWarehouse.shelfMaxSize}`;
+      }
+      if (formData.currentZone > 0 && formData.currentRow > 0) {
+        const isExcluded = selectedWarehouse.excludedCells?.some(
+          (c) => c.zone === formData.currentZone && c.row === formData.currentRow
+        );
+        if (isExcluded) {
+          newErrors.currentZone = "Эта ячейка исключена из схемы склада";
+          newErrors.currentRow = "Эта ячейка исключена из схемы склада";
+        }
+      }
+    }
+
     if (!formData.warehouseCode) {
       newErrors.warehouseCode = "Склад обязателен";
     }
@@ -145,6 +172,46 @@ const CreateRobotModal = ({ open, onClose, onRobotCreated }: CreateRobotModalPro
 
     try {
       const token = localStorage.getItem('token');
+
+      // Fetch warehouse to validate zone/row against excludedCells
+      const whRes = await fetch(apiBaseUrl + '/warehouse', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (whRes.ok) {
+        const allWarehouses = await whRes.json();
+        const wh = allWarehouses.find((w: any) => w.code === formData.warehouseCode);
+        if (wh) {
+          if (formData.currentZone > wh.zoneMaxSize) {
+            setErrors({ currentZone: 'Зона не может превышать ' + wh.zoneMaxSize });
+            setLoading(false);
+            return;
+          }
+          if (formData.currentRow > wh.rowMaxSize) {
+            setErrors({ currentRow: 'Ряд не может превышать ' + wh.rowMaxSize });
+            setLoading(false);
+            return;
+          }
+          if (formData.currentShelf > wh.shelfMaxSize) {
+            setErrors({ currentShelf: 'Полка не может превышать ' + wh.shelfMaxSize });
+            setLoading(false);
+            return;
+          }
+          if (formData.currentZone > 0 && formData.currentRow > 0) {
+            const isExcluded = wh.excludedCells?.some(
+              (c: any) => c.zone === formData.currentZone && c.row === formData.currentRow
+            );
+            if (isExcluded) {
+              setErrors({
+                currentZone: 'Эта ячейка исключена из схемы склада',
+                currentRow: 'Эта ячейка исключена из схемы склада',
+              });
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
+
       const response = await fetch(apiBaseUrl + '/robots/register', {
         method: 'POST',
         headers: {
